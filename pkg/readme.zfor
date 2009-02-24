@@ -1,0 +1,11 @@
+Z Fail-over Resolver
+
+* Description
+This is a fail-over name resolver to be used in Yahoo-Koubei network. It has
+similar functionailities like yfor, but without using MDBM and other Yahoo
+related libraries.
+
+* Changelog
+Version 1.0
+	- initial release
+

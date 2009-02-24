@@ -1,0 +1,12 @@
+zfor使用的ETS表存储数据格式
+	zfor_config ETS表数据格式
+	: 该表主要保存定时刷新的全局配置参数及各个虚拟主机配置参数。其格式表示如下：
+	: 	{'global_conf', UpdateTS, record(global_conf)}
+	: 	{{'vhost',VHostname}, UpdateTS, record(vhost_conf)}
+	zfor_health ETS表数据格式
+	: 该表主要保存各个虚拟主机下属主机的健康状态，其格式表示如下：
+	: 	{{'vhost',VHostname}, UpdateTS, record(vhost_stat)}
+	: 其中record(vhost_stat)里包含了虚拟主机下属各个主机的健康检查状态，类型为
+	: [record(host_stat)]；UpdateTS为健康状态更新时戳，用以剔除ETS表中残余的历史
+	: 虚拟主机记录。
+

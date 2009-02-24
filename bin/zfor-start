@@ -1,0 +1,27 @@
+#!/bin/bash
+
+ROOT=$(ROOT)
+ERL=$ROOT/bin/erl
+RUN_ERL=$ROOT/bin/run_erl
+ZFORD_ERL_NAME=zford@127.0.0.1
+
+ERL_SEARCHPATH=$ROOT/share/zfor/ebin
+ZFORD_INETRC=$ROOT/conf/zfor/zfor.inetrc
+ZFORD_LOGCONF=$ROOT/conf/zfor/log.config
+ZFORD_CONFDIR=$ROOT/etc/zfor/
+ZFORD_BOOT=$ROOT/bin/zfor
+
+NEW_CWD=/tmp
+HOME_DIR=$ROOT/conf/zfor
+
+# 启动erlang daemon时当前目录必须能在启动用户身份下访问
+cd $NEW_CWD
+
+# 设置HOME目录以满足erlang解释器要求，让解释器在此处读取.erlang.cookie文件
+export HOME=$HOME_DIR
+
+# 设置HEART_COMMAND环境变量以便让heart程序监控erlang解释器
+export HEART_COMMAND="$ERL +K true -heart -name $ZFORD_ERL_NAME -pa $ERL_SEARCHPATH -config $ZFORD_LOGCONF -boot $ZFORD_BOOT -kernel inetrc '\"$ZFORD_INETRC\"' -zfor conf_path '\"$ZFORD_CONFDIR\"' -noshell -noinput"
+
+$RUN_ERL -daemon /tmp/ $ROOT/logs/zfor/ "$HEART_COMMAND"
+

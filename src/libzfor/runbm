@@ -1,0 +1,12 @@
+#!/bin/sh
+./benchmark $* &
+./benchmark $* &
+./benchmark $* &
+./benchmark $* &
+./benchmark $* &
+./benchmark $* &
+./benchmark $* &
+./benchmark $* &
+./benchmark $* &
+./benchmark $* &
+

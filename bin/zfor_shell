@@ -1,0 +1,12 @@
+#!/bin/sh
+
+ROOT=$(ROOT)
+ERL=$ROOT/bin/erl
+ERL_NAME=zfor_admin@127.0.0.1
+ZFORD_ERL_NAME=zford@127.0.0.1
+
+NEW_CWD=/tmp
+HOME_DIR=$ROOT/conf/zfor
+
+sudo -u nobody sh -c "cd $NEW_CWD; export HOME=$HOME_DIR; $ERL -name $ERL_NAME -remsh $ZFORD_ERL_NAME"
+
