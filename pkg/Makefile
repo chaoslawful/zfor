@@ -1,8 +1,18 @@
 PREFIX=/usr/local
 TMP_DIR=/tmp/yk_zfor
+SLASHED_TMP_DIR=$(shell echo $(TMP_DIR)|sed 's/\//\\\//g')
 TMP_ROOT=$(TMP_DIR)/$(PREFIX)
 VERSION=$(shell grep Version ../Changelog|head -1|awk '{print $$2}')
 PKGNAME=zfor-$(VERSION)
+EXT_PKGNAME=php-zfor-$(VERSION)
+EXT_ROOT=$(shell php-config --extension-dir)
+INI_ROOT=$(shell php --ini|grep "Scan for additional .ini files"|perl -ane 'print $$F[-1]')
+TMP_EXT_ROOT=$(TMP_DIR)/$(EXT_ROOT)
+TMP_INI_ROOT=$(TMP_DIR)/$(INI_ROOT)
+
+pkg: tgz deb rpm
+
+ext-pkg: ext-tgz ext-deb ext-rpm
 
 tgz:
 	sudo rm -rf $(TMP_DIR); \
@@ -31,7 +41,7 @@ tgz:
 	sudo chown nobody: $(TMP_ROOT)/logs/zfor; \
 	sudo chown nobody: $(TMP_ROOT)/conf/zfor/.erlang.cookie; \
 	sudo chmod 0400 $(TMP_ROOT)/conf/zfor/.erlang.cookie; \
-	sudo tar -czf ./$(PKGNAME).tgz -P --transform "s/\/tmp\/yk_zfor//" $(TMP_DIR); \
+	sudo tar -czf ./$(PKGNAME).tgz -P --transform "s/$(SLASHED_TMP_DIR)//" $(TMP_DIR); \
 	sudo chmod a+rw ./$(PKGNAME).tgz;
 
 deb: tgz
@@ -40,9 +50,26 @@ deb: tgz
 rpm: tgz
 	sudo alien -k -r $(PKGNAME).tgz
 
+ext-tgz:
+	sudo rm -rf $(TMP_DIR); \
+	mkdir -p $(TMP_EXT_ROOT); \
+	mkdir -p $(TMP_INI_ROOT); \
+	cp ../src/php_zfor/modules/zfor.so $(TMP_EXT_ROOT)/zfor.so; \
+	cp ../src/php_zfor/zfor.ini $(TMP_INI_ROOT)/zfor.ini; \
+	sudo chown -R root:root $(TMP_EXT_ROOT); \
+	sudo chown -R root:root $(TMP_INI_ROOT); \
+	sudo tar -czf ./$(EXT_PKGNAME).tgz -P --transform "s/$(SLASHED_TMP_DIR)//" $(TMP_DIR); \
+	sudo chmod a+rw ./$(EXT_PKGNAME).tgz;
+
+ext-deb: ext-tgz
+	sudo alien -k -d $(EXT_PKGNAME).tgz
+
+ext-rpm: ext-tgz
+	sudo alien -k -r $(EXT_PKGNAME).tgz
+
 clean:
 	rm -rf *.tgz *.rpm *.deb
 	sudo rm -rf $(TMP_DIR)
 
-.PHONY: tgz deb rpm clean
+.PHONY: tgz deb rpm ext-tgz ext-deb ext-rpm clean
 

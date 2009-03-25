@@ -10,8 +10,11 @@ ext:
 pkg:
 	$(MAKE) PREFIX=$(PREFIX) -C pkg
 
+ext-pkg:
+	$(MAKE) PREFIX=$(PREFIX) -C pkg ext-pkg
+
 clean:
 	for i in $(SUBDIRS) pkg; do $(MAKE) PREFIX=$(PREFIX) -C $$i clean; done
 
-.PHONY: all ext pkg clean
+.PHONY: all ext pkg ext-pkg clean
 

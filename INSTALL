@@ -1,4 +1,33 @@
-Release directory structure is as following:
+- HOW TO COMPILE ZFOR
+* Prerequsite: erlang(>=R11B), gcc(>=3.4), (optional) php(>=5.2)
+* Steps:
+	1. make PREFIX=/usr/local (Compiling zfor server and client library)
+	2. (optional) make PREFIX=/usr/local ext (Compiling PHP extension)
+	3. make PREFIX=/usr/local pkg (Make zfor server package)
+	4. (optional) make PREFIX=/usr/local ext-pkg (Make zfor PHP package)
+
+- HOW TO INSTALL ZFOR
+* For .tgz package:
+	1. sudo tar -xzPf zfor*.tgz
+	2. (optional) sudo tar -xzPf php-zfor*.tgz
+
+* For .deb package:
+	1. sudo dpkg -i zfor*.deb
+	2. (optional) sudo dpkg -i php-zfor*.deb
+
+* For .rpm package:
+	1. sudo rpm -Uvh zfor*.rpm
+	2. (optional) sudo rpm -Uvh php-zfor*.rpm
+
+- ZFOR ADMIN
+* sudo -u nobody zfor-start (Start zfor server)
+* sudo -u nobody zfor-stop (Stop zfor server)
+* zfor_conf (Dump current config files read by zfor server)
+* zfor_stat (Dump current host status stored in zfor server)
+* zfor_host <hostname> (Resolve given hostname through zfor service)
+* zfor_shell (Connect to zfor server shell, press ^Gq to quit. Use with care!)
+
+- RELEASE STRUCTURE
 
 	$(PREFIX) 					- Release root (default to /usr/local/)
 		+- bin/ 				- Contains all zfor executable/script files

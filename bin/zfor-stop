@@ -1,5 +1,11 @@
 #!/bin/bash
 
+USER=`whoami`
+if [ "$USER" != "nobody" ]; then
+	echo 'ZFOR must be stopped by user "nobody"!'
+	exit 1
+fi
+
 ROOT=$(PREFIX)
 ERL=`which erl`
 ERL_NAME=zfor_admin@127.0.0.1
