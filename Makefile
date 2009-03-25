@@ -1,13 +1,14 @@
-SUBDIRS=src pkg
+SUBDIRS=src
+PREFIX=/usr/local
 
 all:
-	for i in $(SUBDIRS); do $(MAKE) -C $$i all; done
+	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i all; done
 
-tgz:
-	for i in $(SUBDIRS); do $(MAKE) ROOT=/opt/erlang_otp -C $$i all; done
+ext:
+	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i ext; done
 
 clean:
-	for i in $(SUBDIRS); do $(MAKE) -C $$i clean; done
+	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i clean; done
 
 .PHONY: all clean
 

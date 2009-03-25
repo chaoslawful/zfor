@@ -1,21 +1,24 @@
-#!/bin/sh
+#!/bin/bash
 
-ROOT=$(ROOT)
-ERL=$ROOT/bin/erl
+ROOT=$(PREFIX)
+ERL=`which erl`
 ERL_NAME=zfor_admin@127.0.0.1
 ZFORD_ERL_NAME=zford@127.0.0.1
 
 NEW_CWD=/tmp
 HOME_DIR=$ROOT/conf/zfor
 
-# 启动erlang daemon时当前目录必须能在启动用户身份下访问
+# Current working directory must be accessiable for the starting up user,
+# So we change CWD to a world-accessiable place.
 cd $NEW_CWD
 
-# 设置HOME目录以满足erlang解释器要求，让解释器在此处读取.erlang.cookie文件
+# ERTS requires HOME environment variable being set, in order to read .erlang.cookie file
 export HOME=$HOME_DIR
 
-# 远程停止zfor服务，由于zfor服务由heart进程守护，因此要临时将heart重启命令设为无用的程序
-# 再结束zfor服务。若不这样处理，zfor服务退出后将自动被heart进程重新启动
+# Remote stopping zfor server
+# Note: heart monitor is watching zfor server, so we must set heart command-line to
+# a useless program and stop zfor server then, otherwise the server will be restarted
+# by heart monitor!
 $ERL -name $ERL_NAME -noshell -noinput \
 	-eval "rpc:call('$ZFORD_ERL_NAME',heart,set_cmd,[\"true\"])" \
 	-eval "rpc:call('$ZFORD_ERL_NAME',init,stop,[]), halt()"

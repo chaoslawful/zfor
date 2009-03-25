@@ -1,0 +1,18 @@
+Release directory structure is as following:
+
+	$(PREFIX) 					- Release root (default to /usr/local/)
+		+- bin/ 				- Contains all zfor executable/script files
+		+- lib/ 				- Contains libzfor.so
+		+- include/ 			- Contains libzfor header files
+		+- share/
+			+- zfor/
+				+- ebin/ 		- Contains zfor server beam files
+				+- src/ 		- Contains zfor server source files
+				+- include/ 	- Contains zfor server common header files
+		+- logs/
+			+- zfor/ 			- zfor server runtime logging files places here
+		+- conf/
+			+- zfor/ 			- ERTS setting files for zfor server places here
+		+- etc/
+			+- zfor/ 			- zfor virtual host config files places here
+

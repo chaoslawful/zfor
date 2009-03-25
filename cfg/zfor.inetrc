@@ -2,10 +2,10 @@
 % 	erl -kernel inetrc '"/etc/zfor/zfor.inetrc"'
 {file,resolv,"/etc/resolv.conf"}.
 {file,hosts,"/etc/hosts"}.
-{cache_size,10000}. 	% 设置ERTS的DNS子系统中最多缓存10000个域名解析结果
-{cache_refresh,300000}. 	% 设置DNS子系统中缓存有效时间为300s
-{timeout,100}. 	% 设置DNS子系统域名解析超时时间为100ms
-{retry,2}. 	% 每个域名解析失败后最多重试2次
-{lookup,[file,dns]}. 	% 设置域名解析顺序为先搜索hosts文件再查询DNS子系统，不直接使用native接口
+{cache_size,10000}. 	% Cache at most 10000 DNS entries in ERTS
+{cache_refresh,300000}. 	% Set DNS cache expire time in ERTS to 300s
+{timeout,100}. 	% Set DNS resolving timeout to 100ms
+{retry,2}. 	% Retry at most 2 times while resolving names
+{lookup,[file,dns]}. 	% Set name resolving sequence: first search /etc/hosts, then ERTS DNS, don't use libc calls directly
 % vim:ft=erlang ts=4 sw=4
 

@@ -1,7 +1,6 @@
-ROOT=/home/z
 CXX=g++
 CXXFLAGS=-g -O2
-LDFLAGS=-Wl,-rpath=$(ROOT)/lib -ldl
+LDFLAGS=-Wl,-rpath=$(PREFIX)/lib -ldl
 
 all: libzfor.so zfor_host override benchmark
 
