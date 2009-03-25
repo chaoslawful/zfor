@@ -1,0 +1,5 @@
+Version 1.0
+	* initial release
+	* package release in tarball format
+	* generate deb/rpm package using alien
+

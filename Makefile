@@ -7,8 +7,11 @@ all:
 ext:
 	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i ext; done
 
-clean:
-	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i clean; done
+pkg:
+	$(MAKE) PREFIX=$(PREFIX) -C pkg
 
-.PHONY: all clean
+clean:
+	for i in $(SUBDIRS) pkg; do $(MAKE) PREFIX=$(PREFIX) -C $$i clean; done
+
+.PHONY: all ext pkg clean
 
