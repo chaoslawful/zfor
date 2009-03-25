@@ -1,5 +1,5 @@
 - HOW TO COMPILE ZFOR
-* Prerequsite: erlang(>=R11B), gcc(>=3.4), (optional) php(>=5.2)
+* Prerequsite: erlang(>=R11B), gcc(>=3.4), (optional) php(>=5.2), alien
 * Steps:
 	1. make PREFIX=/usr/local (Compiling zfor server and client library)
 	2. (optional) make PREFIX=/usr/local ext (Compiling PHP extension)
