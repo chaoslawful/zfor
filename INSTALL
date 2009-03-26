@@ -12,8 +12,8 @@
 - HOW TO INSTALL ZFOR
 
 * For .tgz package:
-	1. sudo tar -xzPf zfor*.tgz
-	2. (optional) sudo tar -xzPf php-zfor*.tgz
+	1. sudo tar -xzpPf zfor*.tgz
+	2. (optional) sudo tar -xzpPf php-zfor*.tgz
 
 * For .deb package:
 	1. sudo dpkg -i zfor*.deb
