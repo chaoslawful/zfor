@@ -1,5 +1,5 @@
 <?php
-$ntimes=100000;
+$ntimes=10000;
 $ips=array();
 $start=microtime(true);
 for($i=0;$i<$ntimes;++$i) {

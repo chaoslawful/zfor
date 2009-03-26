@@ -11,19 +11,22 @@ extern "C" {
 #endif
 
 /**
- * 系统gethostbyname()调用替代品
+ * Replacement for gethostbyname() in system libc
  * */
 struct hostent *zfor_gethostbyname(const char *name);
 
+/**
+ * Internal DNS entry function
+ * */
 struct hostent *zfor_lookup(const char *name, void *resbuf, int resbuflen, int *errp);
 
 /**
- * 设置ZFOR UDP服务端口
+ * Set UDP port of zfor server
  * */
 int zfor_set_udp_port(int port);
 
 /**
- * 设置ZFOR UDP请求超时时间(ms)
+ * Set UDP request timeout of zfor server
  * */
 int zfor_set_udp_timeout(int timeout);
 
