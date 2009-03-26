@@ -1,5 +1,9 @@
-Version 1.0
+2009-3-26 Wang Xiaozhe <chaoslawful@gmail.com>
 	* initial release
+
 	* package release in tarball format
+
 	* generate deb/rpm package using alien
+
+	- Version: 1.0
 
