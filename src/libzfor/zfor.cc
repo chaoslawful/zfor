@@ -92,7 +92,7 @@ static struct zfor_result_data *zfor_setup_result(void *resbuf, int resbuflen)
 }
 
 // 定义zfor_gethostbyname为库函数调用gethostbyname的别名
-extern "C" struct hostent *gethostbyname(const char *name) __attribute__((alias("zfor_gethostbyname")));
+extern "C" struct hostent *gethostbyname(const char *name) __attribute__((weak,alias("zfor_gethostbyname")));
 
 struct hostent *zfor_gethostbyname(const char *name)
 {

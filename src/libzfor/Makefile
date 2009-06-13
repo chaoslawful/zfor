@@ -1,6 +1,14 @@
 CXX=g++
-CXXFLAGS=-g -O2
-LDFLAGS=-Wl,-rpath=$(PREFIX)/lib -ldl
+CXXFLAGS=-g -O2 -fPIC
+UNAME := $(shell uname)
+
+ifeq ($(UNAME), Darwin)
+ LINK=-dynamiclib
+ LDFLAGS=-Wl -ldl
+else
+ LINK=-shared
+ LDFLAGS=-Wl,-rpath=$(PREFIX)/lib -ldl
+endif
 
 all: libzfor.so zfor_host override benchmark
 
@@ -8,7 +16,7 @@ all: libzfor.so zfor_host override benchmark
 	$(CXX) -c $(CXXFLAGS) $^
 
 libzfor.so: zfor.o
-	$(CXX) -shared $^ -o $@ $(LDFLAGS)
+	$(CXX) $(LINK) $^ -o $@ $(LDFLAGS)
 
 zfor_host: zfor_host.o libzfor.so
 	$(CXX) zfor_host.o -o $@ $(LDFLAGS) -L. -lzfor
