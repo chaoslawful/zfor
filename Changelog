@@ -1,9 +1,9 @@
+2009-6-13 Chris Goffinet <cg@chrisgoffinet.com>
+	* fixed makefile for compiling under OSX
+
 2009-3-26 Wang Xiaozhe <chaoslawful@gmail.com>
 	* initial release
-
 	* package release in tarball format
-
 	* generate deb/rpm package using alien
-
 	- Version: 1.0
 
