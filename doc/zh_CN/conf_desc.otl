@@ -96,9 +96,9 @@ zfor配置文件格式描述
 			: 容。
 			select_method
 			: * 意义：解析虚拟主机域名时下属主机的选择策略。目前可选的策略为
-			: fallback、grp_rand、grp_all、min_rt、single_active 和 all_active。
-			: fallback策略选择主机列表中首个活动主机；grp_rand策略在响应时间成
-			: 组的活动主机中随机选择一个；grp_all策略选择所有响应时间成组的活动
+			: fallback、round_robin、grp_rand、grp_all、min_rt、single_active 和 all_active。
+			: fallback策略选择主机列表中首个活动主机；round_robin以轮转方式选择一个；
+			: grp_rand策略在响应时间成组的活动主机中随机选择一个；grp_all策略选择所有响应时间成组的活动
 			: 主机；min_rt策略选择所有活动主机中响应时间最短的那个；single_active
 			: 策略只有仅有1个主机活动时才选择它，没有活动主机或活动主机多于1个
 			: 时都算是解析失败；all_active策略返回所有活动主机。
