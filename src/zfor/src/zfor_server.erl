@@ -1,6 +1,7 @@
 -module(zfor_server).
 -include("zfor_common.hrl").
 -export([udp_server/2]).
+-compile([debug_info, bin_opt_info]).
 %-compile([debug_info,export_all]).
 
 % UDP查询服务，用于同libzfor进行交互
@@ -20,7 +21,7 @@ udp_server_loop(State,Sock) ->
 			% 在独立进程中处理请求并反馈结果
 			spawn(
 				fun () ->
-					BinReply=handle_req(State,Bin),
+					BinReply=handle_req(Bin,'init',State),
 					gen_udp:send(Sock,Host,Port,BinReply)
 				end
 			);
@@ -29,23 +30,42 @@ udp_server_loop(State,Sock) ->
 	end,
 	udp_server_loop(State,Sock).
 
-handle_req(State,<<Type, Data/binary>>) ->
-	case Type of
-		?REQ_DNS ->
-			% 正向DNS解析请求
-			VHostname=erlang:binary_to_list(Data),
-			case zfor_caretaker:get_vhost(State,VHostname) of
-				{ok, #vhost_stat{ips=IPs}} ->
-					% 在ETS健康状态表中找到了请求解析的主机记录
-					Length=erlang:length(IPs),
-					BinAddrs=convert_addrs_to_binary(IPs),
-					<<Length,BinAddrs/binary>>;
-				_ ->
-					% 未在ETS健康状态表中找到对应记录
+handle_req(<<?REQ_DNS, Data/binary>>, 'init', State) ->
+	handle_req(Data, 'req_dns', State);
+handle_req(<<Type, _/binary>>, 'init', _State) ->
+	?WARN_LOG("Unknown request type: ~p~n",[Type]),
+	<<0>>;
+handle_req(Data, 'req_dns', State) ->
+	% 正向DNS解析请求
+	VHostname=erlang:binary_to_list(Data),
+	case zfor_caretaker:get_vhost(State,VHostname) of
+		{ok, #vhost_stat{ips=IPs}} ->
+			% 在ETS健康状态表中找到了请求解析的主机记录
+			TotalLen=erlang:length(IPs),
+			if
+				TotalLen>=1 ->
+					% There are more then one hosts alive
+					case zfor_config:get_vhost_conf(State,VHostname) of
+						{ok, _, #vhost_conf{select_method='round_robin'}} ->
+							% Picking up a active host based on round-robin strategy
+
+							% Updating current host index
+							CurHostIdx=zfor_caretaker:inc_vhost_curhost(State,VHostname,1,erlang:length(IPs)),
+							RRIP=lists:nth(CurHostIdx,IPs),
+							Length=1,
+							BinAddrs=convert_addrs_to_binary([RRIP]),
+							<<Length,BinAddrs/binary>>;
+						_ ->
+							% Return result directly
+							BinAddrs=convert_addrs_to_binary(IPs),
+							<<TotalLen,BinAddrs/binary>>
+					end;
+				true ->
+					% No alive hosts found
 					<<0>>
 			end;
 		_ ->
-			?WARN_LOG("Unknown request type: ~p~n",[Type]),
+			% 未在ETS健康状态表中找到对应记录
 			<<0>>
 	end.
 

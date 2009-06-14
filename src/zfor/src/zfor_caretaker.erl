@@ -3,20 +3,30 @@
 % 	1. 检查当前配置数据中所有虚拟主机下属主机的健康状态，凡是主机域名解析超时、无法连接、连接
 % 	后无主动握手数据包或握手数据包同期望数据串不符的主机都要标记为失效，每个主机的整个健康检查
 % 	状态要受到健康检查超时的约束，对于超时仍未结束检查的主机标记为失效。对于有效的主机则记录其
-% 	解析后的IP地址和响应时间(RT，可等同为整个连接过程的耗时)。检查结果都记录到ETS表中。
+% 	解析后的IP地址和响应时间(RT，可等同为整个连接过程的耗时)。
 % 	2. 将虚拟主机下所有经检查有效的主机数据合并起来，根据配置参数决定的选择策略挑选出一个或多个
 % 	条件相符的主机，用它们的数据构造出虚拟主机对应的正向域名解析记录保存到ETS表中。
 -module(zfor_caretaker).
 -include("zfor_common.hrl").
--export([del_vhost/2, get_vhost/2, refresh_status/2, vhost_checker/2]).
+-export([
+		del_vhost/2,
+		get_vhost/2,
+		refresh_status/2,
+		vhost_checker/2,
+		inc_vhost_curhost/3,
+		inc_vhost_curhost/4,
+		del_vhost_curhost/2
+		]).
+-compile([debug_info, bin_opt_info]).
 %-compile([debug_info,export_all]).
 
-% 从ETS健康状态表中删除指定虚拟主机的记录
+% 删除指定虚拟主机的健康记录
 % 返回值：true
 del_vhost(State,VHostname) ->
-	Tid=State#server_state.health_ets_id,
+	HealthTid=State#server_state.health_ets_id,
 	VHostKey={?VHOST_HEALTH_PREFIX,VHostname},
-	ets:delete(Tid,VHostKey).
+	ets:delete(HealthTid,VHostKey),
+	del_vhost_curhost(State,VHostname).
 
 % 从ETS健康状态表中查找指定虚拟主机的记录
 % 返回值：{ok, record(vhost_stat)} / undefined
@@ -61,6 +71,43 @@ vhost_checker(State,VHostname) ->
 			ok
 	end.
 
+% Increase the curhost index of the specified virtual host
+% @retval: CurHostIdx
+inc_vhost_curhost(State,VHostname,Step) ->
+	HealthTid=State#server_state.health_ets_id,
+	VHostKey={?VHOST_CURHOST_PREFIX,VHostname},
+	case catch(ets:update_counter(HealthTid, VHostKey, {?VHOST_CURHOST_POS, Step})) of
+		Result when erlang:is_integer(Result) ->
+			% update curhost index successfully
+			Result;
+		_ ->
+			% update curhost index failed, try to insert a new curhost record
+			ets:insert_new(HealthTid,{VHostKey,1}),
+			1
+	end.
+
+% Increase/reset the curhost index of the specified virtual host
+% @retval: CurHostIdx
+inc_vhost_curhost(State,VHostname,Step,IdxLimit) ->
+	HealthTid=State#server_state.health_ets_id,
+	VHostKey={?VHOST_CURHOST_PREFIX,VHostname},
+	case catch(ets:update_counter(HealthTid, VHostKey, {?VHOST_CURHOST_POS, Step, IdxLimit, 1})) of
+		Result when erlang:is_integer(Result) ->
+			% update curhost index successfully
+			Result;
+		_ ->
+			% update curhost index failed, try to insert a new curhost record
+			ets:insert_new(HealthTid,{VHostKey,1}),
+			1
+	end.
+
+% Delete the curhost index record of the specified virtual host
+% @retval: true
+del_vhost_curhost(State,VHostname) ->
+	HealthTid=State#server_state.health_ets_id,
+	VHostKey={?VHOST_CURHOST_PREFIX,VHostname},
+	ets:delete(HealthTid,VHostKey).
+
 % ------ 内部实现函数 -------
 
 % 检查虚拟主机健康状态并更新ETS表
@@ -86,6 +133,17 @@ check_and_update_vhost_stat(State,VHostname,VHostConf) ->
 		),
 	% 根据实际主机检查结果和选择策略刷新ETS中的虚拟主机健康状态记录
 	update_vhost_stat(State,VHostname,HostStats,VHostConf).
+
+% 更新ETS表中的虚拟主机健康记录
+update_vhost_stat(State,VHostname,HostStats,VHostConf) ->
+	Tid=State#server_state.health_ets_id,
+	VHostKey={?VHOST_HEALTH_PREFIX,VHostname},
+	UpdateTS=erlang:localtime(),
+	% 根据虚拟主机域名和其下实际主机的健康检查结果构造虚拟主机健康状态记录
+	VHostState=make_vhost_stat(VHostname,HostStats,VHostConf),
+	% 将虚拟主机健康检查结果插入ETS表
+	ets:insert(Tid,{VHostKey,UpdateTS,VHostState}),
+	ok.
 
 % 根据虚拟主机域名和实际主机的健康检查结果构造虚拟主机健康状态记录
 make_vhost_stat(VHostname,HostStats,VHostConf) ->
@@ -179,6 +237,27 @@ make_vhost_stat(VHostname,HostStats,VHostConf) ->
 					% 找到了RT最小的活动主机，虚拟主机地址就是该主机地址
 					AliveVHost#vhost_stat{ips=[MinRTIP]}
 			end;
+		'round_robin' ->
+			% Pickup an active host based on round-robin strategy
+			% NOTE: The actual round-robin picking up is proceeded in
+			% zfor_server to achieve better balancing, here we only get
+			% all active hosts.
+			ActiveIPs=lists:foldl(
+					fun
+						(#host_stat{state='alive',ip=IP}, IPs) -> [IP|IPs];
+						(_, IPs) -> IPs
+					end,
+					[],
+					HostStats
+				),
+			case ActiveIPs of
+				[] ->
+					% 没有活动主机，虚拟主机域名不可用
+					DeadVHost;
+				_ ->
+					% 有活动主机，虚拟主机地址列表就是所有活动主机的地址列表
+					AliveVHost#vhost_stat{ips=ActiveIPs}
+			end;
 		'grp_rand' ->
 			% 在RT差异小于预设门限的活动主机中随机挑选一个
 			GrpThres=VHostConf#vhost_conf.group_threshold,
@@ -247,17 +326,6 @@ make_vhost_stat(VHostname,HostStats,VHostConf) ->
 			?WARN_LOG("Unrecognizable host selection method '~p' for vhost ~p~n",[Other,VHostname]),
 			DeadVHost
 	end.
-	
-% 更新ETS表中的虚拟主机健康记录
-update_vhost_stat(State,VHostname,HostStats,VHostConf) ->
-	Tid=State#server_state.health_ets_id,
-	VHostKey={?VHOST_HEALTH_PREFIX,VHostname},
-	UpdateTS=erlang:localtime(),
-	% 根据虚拟主机域名和其下实际主机的健康检查结果构造虚拟主机健康状态记录
-	VHostState=make_vhost_stat(VHostname,HostStats,VHostConf),
-	% 将虚拟主机健康检查结果插入ETS表
-	ets:insert(Tid,{VHostKey,UpdateTS,VHostState}),
-	ok.
 
 % 检查实际主机健康状态并返回host_stat记录
 check_host_stat(Hostname,VHostConf) ->

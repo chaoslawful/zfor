@@ -2,7 +2,8 @@
 -module(zfor_app).
 -behaviour(application).
 -include("zfor_common.hrl").
--export([start/2,stop/1]).
+-export([start/2, stop/1]).
+-compile([debug_info, bin_opt_info]).
 %-compile([debug_info,export_all]).
 
 start(_Type,_Args)->

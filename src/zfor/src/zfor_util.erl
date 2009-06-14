@@ -2,6 +2,7 @@
 -module(zfor_util).
 -include("zfor_common.hrl").
 -export([dump_config/0, dump_health/0, pmap_timeout/3, consult_string/1, sleep/1, waitfor/2]).
+-compile([debug_info, bin_opt_info]).
 %-compile([debug_info,export_all]).
 
 % 美观形式显示当前使用的配置数据
@@ -206,7 +207,7 @@ consult_string(Terms,Remains)->
 					end;
 				{eof, _}->
 					lists:reverse(Terms);
-				{error, {_, _, EDesc}}->
+				{error, EDesc, _}->
 					?ERR_LOG("Unable to tokenize data: ~p~n",
 							   [erl_scan:format_error(EDesc)]),
 					[]

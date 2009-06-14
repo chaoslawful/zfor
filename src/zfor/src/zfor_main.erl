@@ -2,6 +2,7 @@
 -include("zfor_common.hrl").
 -export([start_link/1, stop/0, init/2, debug_output/3]).
 -export([system_continue/3, system_terminate/4]).
+-compile([debug_info, bin_opt_info]).
 %-compile([debug_info,export_all]).
 
 start_link(ConfPath) ->

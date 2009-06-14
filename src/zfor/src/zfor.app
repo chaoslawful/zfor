@@ -24,7 +24,7 @@
 			% applications
 		{applications, [kernel, stdlib, crypto, inets]}, 	% All applications which must be started before this
 															% application is started. systools uses this list.
-		{env,[{conf_path, "/home/z/conf/zfor"}]}, 	% Application configuration parameters, [{Par,Val}]
+		{env,[{conf_path, "/usr/local/etc/zfor"}]}, 	% Application configuration parameters, [{Par,Val}]
 											% Can be override in system configuration file / cmdline
 		{mod,{zfor_app,[]}} 	% The startup module and start arguments
 	]

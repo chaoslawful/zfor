@@ -1,7 +1,7 @@
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("kernel/include/file.hrl").
 
--define(DEFAULT_CONFIG_PATH,"/home/z/conf/zfor/"). 	% 默认本地配置文件保存目录
+-define(DEFAULT_CONFIG_PATH,"/usr/local/etc/zfor/"). 	% 默认本地配置文件保存目录
 -define(DEFAULT_RESOLV_PATH,"/etc/resolv.conf"). 	% 默认系统DNS配置文件放置路径
 -define(REMOTE_HTTP_TIMEOUT,1000). 	% 远程获取配置文件的最大超时(ms)
 -define(REMOTE_HTTP_USERAGENT,"ZFOR/1.0"). 	% 远程获取配置文件时使用的User-Agent标识串
@@ -10,6 +10,8 @@
 -define(GLOBAL_CONFIG_KEY,'global_conf'). 	% 全局配置参数在ETS及内部状态临时结构中保存用的键名
 -define(VHOST_CONFIG_PREFIX,'vhost_conf'). 		% 虚拟主机配置参数在ETS及内部状态临时结构中保存用的键名前缀
 -define(VHOST_HEALTH_PREFIX,'vhost_stat'). 		% 虚拟主机健康状态在ETS中保存用的键名前缀
+-define(VHOST_CURHOST_PREFIX,'vhost_curhost').	% 虚拟主机当前活动主机选择下标在ETS中保存用的键名前缀
+-define(VHOST_CURHOST_POS, 2).	% 活动主机下标字段在ETS记录中的位置
 -define(PROCDICT_TYPE_UDP_SERVER,'udp_server').
 -define(PROCDICT_TYPE_VHOST_CHECKER,'vhost_checker').
 -define(ZFOR_MAIN_SRVNAME,'zfor_main'). 	% ZFOR配置数据管理驱动进程本地注册名称

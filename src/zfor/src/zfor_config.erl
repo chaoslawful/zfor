@@ -2,6 +2,7 @@
 -module(zfor_config).
 -include("zfor_common.hrl").
 -export([reload_conf/1, set_conf_path/2, get_global_conf/1, get_vhost_conf/2, get_all_vhost_conf/1]).
+-compile([debug_info, bin_opt_info]).
 %-compile([debug_info,export_all]).
 
 % 检查本地和远程配置文件是否发生变动，若有变化则重新载入所有本地和远程配置文件
@@ -419,6 +420,7 @@ merge_kvs({'vhost',VHostName,[H|T]},OldDict,CurDict) ->
 					VRec#vhost_conf{hostnames=Hosts};
 				{'select_method', Method} when
 					Method=:='fallback';
+					Method=:='round_robin';
 					Method=:='grp_rand';
 					Method=:='grp_all';
 					Method=:='min_rt';

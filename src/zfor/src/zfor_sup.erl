@@ -3,6 +3,7 @@
 -include("zfor_common.hrl").
 -behaviour(supervisor).
 -export([start_link/1, init/1]).
+-compile([debug_info, bin_opt_info]).
 %-compile([debug_info,export_all]).
 
 start_link(ConfPath)->
