@@ -92,15 +92,15 @@ zfor配置文件格式描述
 			: * 取值类型：tuple()。格式为 {'host_list', Name, {'fixed',
 			: [host()]}} 或 {'host_list', Name, {'confsrv', {Cmd, DatId,
 			: GrpId, SrvHost}}}
-			: * 合并方式：scalar，即用后出现的选项值覆盖现出现的值。
+			: * 合并方式：scalar，即用后出现的选项值覆盖先出现的值。
 		VirtualHost配置选项
 			host
 			: * 意义：给出虚拟主机下属的主机域名(可以是虚拟主机或实际主机)列
 			: 表，可以指定预定义主机列表，用于健康检测和虚拟主机域名解析。
 			: * 取值类型：[string()] 或 tuple()，字符串为主机域名。tuple()
 			: 格式为 {'host_list', Name}
-			: * 合并方式：set，即将所有出现的该选项取值进行除重后作为该选项的内
-			: 容。
+			: * 合并方式：对于非主机列表形式为set，即将所有出现的该选项取值进行除重后作为该选项的内
+			: 容。对于主机列表形式为scalar，即后出现的选项值覆盖先出现的值。
 			select_method
 			: * 意义：解析虚拟主机域名时下属主机的选择策略。目前可选的策略为
 			: fallback、round_robin、grp_rand、grp_all、min_rt、single_active 和 all_active。
