@@ -12,7 +12,12 @@ init_per_suite(Config) ->
 "
 {global,
 	[
-		{server_port,1117}
+		{server_port, 1117},
+		{host_list, \"testhl\", {fixed, [\"127.0.0.1\", \"127.0.0.2\"]}},
+		{host_list, \"testrm\", {confsrv, {\"getGroupData\",
+											\"com.taobao.uic.userinfo.UserReadService:1.0.0\",
+											\"HSF\",
+											\"192.168.207.111:8080\"}}}
 	]
 }.
 "
@@ -20,10 +25,22 @@ init_per_suite(Config) ->
 	file:write_file(
 		"/tmp/zfor_conf_test/b.conf",
 "
-{vhost,\"xx.com\",
+{vhost, \"xx.com\",
 	[
-		{host,[\"x.com\"]},
-		{select_method,fallback}
+		{host, [\"x.com\"]},
+		{select_method, fallback}
+	]
+}.
+{vhost, \"yy.com\",
+	[
+		{host, {host_list, \"testhl\"}},
+		{select_method, round_robin}
+	]
+}.
+{vhost, \"zz.com\",
+	[
+		{host, {host_list, \"testrm\"}},
+		{select_method, grp_all}
 	]
 }.
 "
@@ -86,5 +103,21 @@ api_test(_Config) ->
 	#global_conf{server_port = 1117} = zfor_config:get_global_conf(State1),
 	{ok, UpdateTS,
 		#vhost_conf{hostnames = ["x.com"], select_method = fallback}} = zfor_config:get_vhost_conf(State1, "xx.com"),
-	{ok, [{{?VHOST_CONFIG_PREFIX, "xx.com"}, UpdateTS, ExpVConf}]} = zfor_config:get_all_vhost_conf(State1).
+	{ok, VHosts} = zfor_config:get_all_vhost_conf(State1),
+	3 = length(VHosts),
+	{
+		{?VHOST_CONFIG_PREFIX, "xx.com"},
+		UpdateTS,
+		#vhost_conf{hostnames = ["x.com"], select_method = fallback}
+	} = lists:keyfind({?VHOST_CONFIG_PREFIX, "xx.com"}, 1, VHosts),
+	{
+		{?VHOST_CONFIG_PREFIX, "yy.com"},
+		UpdateTS,
+		#vhost_conf{hostnames = ["127.0.0.1", "127.0.0.2"], select_method = round_robin}
+	} = lists:keyfind({?VHOST_CONFIG_PREFIX, "yy.com"}, 1, VHosts),
+	{
+		{?VHOST_CONFIG_PREFIX, "zz.com"},
+		UpdateTS,
+		#vhost_conf{hostnames = ["192.168.212.169"], select_method = grp_all}
+	} = lists:keyfind({?VHOST_CONFIG_PREFIX, "zz.com"}, 1, VHosts).
 
