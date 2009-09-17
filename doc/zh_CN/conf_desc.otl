@@ -87,11 +87,18 @@ zfor配置文件格式描述
 			: * 意义：指定 zfor 服务监听端口(UDP)。
 			: * 取值类型：integer()。
 			: * 合并方式：scalar，即用后出现的选项值覆盖先出现的值。
+			host_list
+			: * 意义：预定义主机列表。
+			: * 取值类型：tuple()。格式为 {'host_list', Name, {'fixed',
+			: [host()]}} 或 {'host_list', Name, {'confsrv', {Cmd, DatId,
+			: GrpId, SrvHost}}}
+			: * 合并方式：scalar，即用后出现的选项值覆盖现出现的值。
 		VirtualHost配置选项
 			host
 			: * 意义：给出虚拟主机下属的主机域名(可以是虚拟主机或实际主机)列
-			: 表，用于健康检测和虚拟主机域名解析。
-			: * 取值类型：[string()]，字符串为主机域名。
+			: 表，可以指定预定义主机列表，用于健康检测和虚拟主机域名解析。
+			: * 取值类型：[string()] 或 tuple()，字符串为主机域名。tuple()
+			: 格式为 {'host_list', Name}
 			: * 合并方式：set，即将所有出现的该选项取值进行除重后作为该选项的内
 			: 容。
 			select_method

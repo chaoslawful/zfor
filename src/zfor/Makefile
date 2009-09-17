@@ -16,6 +16,7 @@ dialyze:
 	dialyzer --succ_typings -c src/*.erl
 
 boot: compile
+	@erl -noshell -pa ./ebin -eval 'gen_rel:main(), halt()'
 	@erl -noshell -pa ./ebin -eval 'systools:make_script("zfor",[]),halt()'
 
 test: compile

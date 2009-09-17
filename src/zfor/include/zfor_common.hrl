@@ -29,19 +29,20 @@
 -define(INFO_LOG,error_logger:info_msg).
 
 % 各个配置数据缺省值
--define(DEFAULT_GLOBAL_CONFIG_URL,[]).
--define(DEFAULT_GLOBAL_CONFIG_TTL,5000).
--define(DEFAULT_GLOBAL_RESOLVE_TIMEOUT,1000).
--define(DEFAULT_GLOBAL_SERVER_PORT,1117).
--define(DEFAULT_VHOST_HOST,[]).
--define(DEFAULT_VHOST_SELECT_METHOD,'grp_rand').
--define(DEFAULT_VHOST_CHECK_TTL,3000).
--define(DEFAULT_VHOST_CHECK_TYPE,http).
--define(DEFAULT_VHOST_CHECK_PORT,80).
--define(DEFAULT_VHOST_HTTP_PATH,"/status.html").
--define(DEFAULT_VHOST_CHECK_TIMEOUT,2000).
--define(DEFAULT_VHOST_GROUP_THRESHOLD,10).
--define(DEFAULT_VHOST_FAILURE_RESPONSE,'none').
+-define(DEFAULT_HOST_LIST, []).
+-define(DEFAULT_GLOBAL_CONFIG_URL, []).
+-define(DEFAULT_GLOBAL_CONFIG_TTL, 5000).
+-define(DEFAULT_GLOBAL_RESOLVE_TIMEOUT, 1000).
+-define(DEFAULT_GLOBAL_SERVER_PORT, 1117).
+-define(DEFAULT_VHOST_HOST, []).
+-define(DEFAULT_VHOST_SELECT_METHOD, 'grp_rand').
+-define(DEFAULT_VHOST_CHECK_TTL, 3000).
+-define(DEFAULT_VHOST_CHECK_TYPE, 'http').
+-define(DEFAULT_VHOST_CHECK_PORT, 80).
+-define(DEFAULT_VHOST_HTTP_PATH, "/status.html").
+-define(DEFAULT_VHOST_CHECK_TIMEOUT, 2000).
+-define(DEFAULT_VHOST_GROUP_THRESHOLD, 10).
+-define(DEFAULT_VHOST_FAILURE_RESPONSE, 'none').
 
 % ZFOR服务状态数据结构
 -record(server_state,
@@ -69,6 +70,7 @@
 % 全局配置参数记录结构
 -record(global_conf,
 	{
+		host_list = ?DEFAULT_HOST_LIST,		% 主机列表定义，类型[{string(), tuple()}]
 		config_url=?DEFAULT_GLOBAL_CONFIG_URL, 		% 远程配置文件URL列表，类型[string()]
 		config_ttl=?DEFAULT_GLOBAL_CONFIG_TTL, 		% 配置数据有效时长，类型integer，单位ms
 		resolve_timeout=?DEFAULT_GLOBAL_RESOLVE_TIMEOUT, 	% 主机域名解析超时时长，类型integer，单位ms

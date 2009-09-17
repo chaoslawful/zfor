@@ -49,14 +49,23 @@ get_all_vhost_conf(State) ->
 scan_and_reload_conf(State) ->
 	LocalConfMod=scan_conf('local',State), 	% 扫描本地配置文件内容是否有变化
 	RemoteConfMod=scan_conf('remote',State), 	% 扫描远程配置文件内容是否有变化
-	if
+	{UpdatedFlag, NewState} = if
 		LocalConfMod orelse RemoteConfMod ->
 			% 本地或远程配置文件内容有变化,重新载入所有配置数据并改动配置数据更新时戳
 			{true, reload_all_conf(State)};
 		true ->
 			% 本地和远程配置文件内容都没有变化,维持原有状态不变
 			{false, State}
-	end.
+	end,
+	% 获取所有预定义的远程主机列表内容，并将虚拟主机配置项中使用主机列表名的部分替换为对应的实际主机列表
+	NewState1 = zfor_hostlist:replace_host_list(NewState),
+	FinState = if
+		UpdatedFlag =:= true ->
+			temp_replace_ets(NewState1); 	% 用内部状态中的临时数据更新ETS表，并更改内部状态中的配置数据更新时戳
+		true ->
+			NewState1
+	end,
+	{UpdatedFlag, FinState}.
 
 % 扫描本地配置文件目录内容,根据更改时戳和inode校验和判断目录内容是否发生了变化
 scan_conf('local',State) ->
@@ -188,8 +197,7 @@ reload_all_conf(State) ->
 	% 采取将所有配置数据读取合并到临时结构中，再用该结构更新ETS表的策略，以避免在更新数据的过程中
 	% 让其他模块读取到前后不一致的配置数据。
 	State2=temp_read_conf('local',State1), 	% 载入本地配置文件并将其内容合并到内部状态里，另外还会刷新inode校验和
-	State3=temp_read_conf('remote',State2), 	% 载入远程配置文件并将其内容合并到内部状态里
-	temp_replace_ets(State3). 	% 用内部状态中的临时数据更新ETS表，并更改内部状态中的配置数据更新时戳
+	temp_read_conf('remote',State2). 	% 载入远程配置文件并将其内容合并到内部状态里
 
 % 重新载入系统DNS配置文件内容
 reload_resolv_info(State) ->
@@ -351,10 +359,10 @@ parse_and_merge([],_,CurDict) ->
 	CurDict;
 parse_and_merge([Term|Remains],OldDict,CurDict) ->
 	case Term of
-		{'global', KVList}=GConf when erlang:is_list(KVList) ->
+		{'global', KVList}=GConf when is_list(KVList) ->
 			NewDict=merge_kvs(GConf,CurDict),
 			parse_and_merge(Remains,OldDict,NewDict);
-		{'vhost', _, KVList}=VConf when erlang:is_list(KVList) ->
+		{'vhost', _, KVList}=VConf when is_list(KVList) ->
 			NewDict=merge_kvs(VConf,CurDict),
 			parse_and_merge(Remains,OldDict,NewDict);
 		_ ->
@@ -376,19 +384,38 @@ merge_kvs({'global',[H|T]},OldDict,CurDict) ->
 		end,
 	% 解析给定的全局配置项，并构造新的临时记录
 	NewGRec=case H of
-				{'config_url',Url} when erlang:is_list(Url) ->
-					case lists:member(Url,GRec#global_conf.config_url) of
-						true ->
-							ConfUrls=GRec#global_conf.config_url;
-						false ->
-							ConfUrls=GRec#global_conf.config_url ++ [Url]
+				{'host_list', Name, {'fixed', Hosts} = Tuple}
+					when is_list(Name), is_list(Hosts) ->
+					% 固定主机列表定义
+					HostList = GRec#global_conf.host_list,
+					% 将固定主机列表信息加入到全局配置信息中
+					NewHostList = case lists:keyfind(Name, 1, HostList) of
+						false -> [{Name, Tuple} | HostList];
+						_ -> HostList
 					end,
-					GRec#global_conf{config_url=ConfUrls};
-				{'config_ttl',TTL} when erlang:is_integer(TTL), TTL>0 ->
+					GRec#global_conf{host_list = NewHostList};
+				{'host_list', Name, {'confsrv', {Cmd, DatId, GrpId, SrvHost}} = Tuple}
+					when is_list(Name), is_list(Cmd), is_list(DatId), is_list(GrpId), is_list(SrvHost) ->
+					% Taobao 远程配置 HTTP 服务提供的主机列表定义
+					HostList = GRec#global_conf.host_list,
+					% 将远程主机列表信息加入到全局配置信息中
+					NewHostList = case lists:keyfind(Name, 1, HostList) of
+						false -> [{Name, Tuple} | HostList];
+						_ -> HostList
+					end,
+					GRec#global_conf{host_list = NewHostList};
+				{'config_url', Url} when is_list(Url) ->
+					ConfUrls = GRec#global_conf.config_url,
+					NewConfUrls = case lists:member(Url, ConfUrls) of
+						true -> ConfUrls;
+						false -> [Url | ConfUrls]
+					end,
+					GRec#global_conf{config_url=NewConfUrls};
+				{'config_ttl',TTL} when is_integer(TTL), TTL>0 ->
 					GRec#global_conf{config_ttl=TTL};
-				{'resolve_timeout',Timeout} when erlang:is_integer(Timeout), Timeout>0 ->
+				{'resolve_timeout',Timeout} when is_integer(Timeout), Timeout>0 ->
 					GRec#global_conf{resolve_timeout=Timeout};
-				{'server_port', Port} when erlang:is_integer(Port), Port>0, Port<65536 ->
+				{'server_port', Port} when is_integer(Port), Port>0, Port<65536 ->
 					GRec#global_conf{server_port=Port};
 				Else ->
 					?ERR_LOG("Unrecognizable global config term: ~p~n",[Else]),
@@ -413,11 +440,14 @@ merge_kvs({'vhost',VHostName,[H|T]},OldDict,CurDict) ->
 		end,
 	% 解析给定的虚拟主机配置项，并构造新的临时记录
 	NewVRec=case H of
-				{'host', Hostnames} when erlang:is_list(Hostnames)->
+				{'host', Hostnames} when is_list(Hostnames)->
 					% 找出不重复的主机名按顺序合并到虚拟主机配置项中
 					NewHostnames=Hostnames -- VRec#vhost_conf.hostnames,
 					Hosts=VRec#vhost_conf.hostnames ++ NewHostnames,
 					VRec#vhost_conf{hostnames=Hosts};
+				{'host', {'host_list', Name} = Tuple} when is_list(Name) ->
+					% 使用预定义的主机列表，保留虚拟主机配置项不变，等待补全主机列表并进行2次扫描时填充为实际的列表
+					VRec#vhost_conf{hostnames = Tuple};
 				{'select_method', Method} when
 					Method=:='fallback';
 					Method=:='round_robin';
@@ -427,21 +457,21 @@ merge_kvs({'vhost',VHostName,[H|T]},OldDict,CurDict) ->
 					Method=:='single_active';
 					Method=:='all_active' ->
 					VRec#vhost_conf{select_method=Method};
-				{'check_ttl', TTL} when erlang:is_integer(TTL), TTL>0 ->
+				{'check_ttl', TTL} when is_integer(TTL), TTL>0 ->
 					VRec#vhost_conf{check_ttl=TTL};
 				{'check_type', Type} when
 					Type=:=http;
 					Type=:=tcp ->
 					VRec#vhost_conf{check_type=Type};
-				{'check_port', Port} when erlang:is_integer(Port), Port>0, Port<65536 ->
+				{'check_port', Port} when is_integer(Port), Port>0, Port<65536 ->
 					VRec#vhost_conf{check_port=Port};
-				{'http_path', Path} when erlang:is_list(Path) ->
+				{'http_path', Path} when is_list(Path) ->
 					VRec#vhost_conf{http_path=Path};
-				{'check_timeout', Timeout} when erlang:is_integer(Timeout), Timeout>0 ->
+				{'check_timeout', Timeout} when is_integer(Timeout), Timeout>0 ->
 					VRec#vhost_conf{check_timeout=Timeout};
-				{'expect_response', Resp} when erlang:is_binary(Resp) ->
+				{'expect_response', Resp} when is_binary(Resp) ->
 					VRec#vhost_conf{expect_response=Resp};
-				{'group_threshold', Threshold} when erlang:is_integer(Threshold), Threshold>0 ->
+				{'group_threshold', Threshold} when is_integer(Threshold), Threshold>0 ->
 					VRec#vhost_conf{group_threshold=Threshold};	
 				{'failure_response', FResp} when FResp=:='all';FResp=:='none' ->
 					VRec#vhost_conf{failure_response=FResp};
