@@ -1,0 +1,12 @@
+{logdir, "@PATH@/log"}.
+{alias, zfor, "@PATH@"}.
+{suites, zfor,
+	[
+		zfor_util_SUITE,
+		zfor_config_SUITE,
+		zfor_main_SUITE,
+		zfor_server_SUITE
+	]
+}.
+% vi:ft=erlang ts=4 sw=4
+

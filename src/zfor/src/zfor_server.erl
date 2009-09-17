@@ -1,8 +1,7 @@
 -module(zfor_server).
 -include("zfor_common.hrl").
 -export([udp_server/2]).
--compile([debug_info, bin_opt_info]).
-%-compile([debug_info,export_all]).
+-compile([debug_info, bin_opt_info, export_all]).
 
 % UDP查询服务，用于同libzfor进行交互
 % 返回值：ok

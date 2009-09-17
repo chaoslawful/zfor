@@ -1,0 +1,43 @@
+{application,
+	% Application name, the resource file name must be of the form <Application name>.app
+	zfor,
+	[
+		% Application description, used by systools
+		{description, "Z Fail-over Resolver"},
+		% Application version string, used by systools
+		{vsn, "%VSN%"},
+		% All modules *introduced* by this application
+		{modules,
+			[
+				zfor_app,
+				zfor_sup,
+				zfor_main,
+				zfor_server,
+				zfor_config,
+				zfor_caretaker,
+				zfor_util,
+				zfor_hostlist
+			]
+		},
+		% All names of registered processes in the application,
+		% systools uses this list to detect name clashes between
+		% applications
+		{registered,
+			[
+				zfor_main,
+				zfor_sup
+			]
+		},
+		% All applications which must be started before this
+		% application is started. systools uses this list.
+		{applications, [kernel, stdlib, inets, crypto]},
+		% Application configuration parameters, [{Par,Val}]
+		% Can be override in system configuration file / cmdline														
+		{env, [{conf_path, "%CONFPATH%"}]},
+		% The startup module and start arguments
+		{mod, {zfor_app, []}}
+	]
+}.
+
+% vim:ft=erlang ts=4 sw=4
+

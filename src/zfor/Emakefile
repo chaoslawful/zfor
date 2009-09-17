@@ -1,7 +1,0 @@
-{'./test/*', [debug_info, {outdir, "ebin"}, {i, "./include"}]}.
-{'./src/*', [debug_info, {outdir, "ebin"}, {i, "./include"}]}.
-{'./*', [debug_info, {outdir, "ebin"}, {i, "./include"}]}.
-
-% Local Variables:
-% mode: erlang
-% End:

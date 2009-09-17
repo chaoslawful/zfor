@@ -1,11 +1,9 @@
--module(zfor_main_tests).
--include("zfor_common.hrl").
+-module(zfor_main_SUITE).
 -compile([debug_info,export_all]).
+-include("ct.hrl").
+-include("zfor_common.hrl").
 
-disable_log_test() ->
-	error_logger:tty(false).
-
-make_dir_test() ->
+init_per_suite(Config) ->
 	os:cmd("rm -rf /tmp/zfor_conf_test"),
 	file:make_dir("/tmp/zfor_conf_test"),
 	file:write_file(
@@ -31,15 +29,27 @@ make_dir_test() ->
 	]
 }.
 "
-	).
-
-zfor_main_start_test() ->
+	),
 	crypto:start(),
 	inets:start(),
-	zfor_main:start_link("/tmp/zfor_conf_test").
+    Config.
 
-zfor_main_stop_test() ->
-	zfor_main:stop(),
+end_per_suite(Config) ->
 	inets:stop(),
-	crypto:stop().
+	crypto:stop(),
+	os:cmd("rm -rf /tmp/zfor_conf_test"),
+    Config.
+
+init_per_testcase(_TestCase, Config) ->
+    Config.
+
+end_per_testcase(_TestCase, Config) ->
+    Config.
+
+% 所有单元测试函数
+all() -> [main_test].
+
+main_test(_Config) ->
+	zfor_main:start_link("/tmp/zfor_conf_test"),
+	zfor_main:stop().
 

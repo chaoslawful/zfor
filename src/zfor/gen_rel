@@ -1,19 +1,20 @@
--module(gen_rel).
--export([main/0]).
+#!/usr/bin/env escript
+-define(REL_FILE, "./src/zfor.rel.in").
 
--define(REL_FILE, "zfor.rel").
--define(ZFOR_VER, "1.0").
-
-main() ->
+main(_) ->
 	{ok, Fd} = file:open(?REL_FILE, [write]),
-	io:format(Fd, "% zfor release file, for generating boot scripts\n", []),
-	io:format(Fd, "{release,\n", []),
-	io:format(Fd, "    {\"zfor\", \"~s\"},\n", [?ZFOR_VER]),
-	io:format(Fd, "    {erts, \"~s\"},\n", [erlang:system_info('version')]),
-	io:format(Fd, "    [\n", []),
-	output_lib_version(Fd, [kernel, stdlib, sasl, crypto, inets, {zfor, ?ZFOR_VER}], "        "),
-	io:format(Fd, "    ]\n", []),
-	io:format(Fd, "}.\n", []),
+	io:format(Fd, "% Release file for generating boot script
+{release,
+    {\"zfor\", \"%VSN%\"},
+    {erts, \"~s\"},
+    [
+", [erlang:system_info('version')]),
+	output_lib_version(Fd, [kernel, stdlib, sasl, crypto, inets, {zfor, "%VSN%"}], "        "),
+	io:format(Fd, "
+    ]
+}.
+% vim:ft=erlang ts=4 sw=4
+", []),
 	ok = file:close(Fd),
 	io:format("~s generated!\n", [?REL_FILE]).
 
@@ -35,4 +36,6 @@ output_lib_version(Fd, [Lib | Rest], PrefixStr) when is_atom(Lib) ->
 lib_verstr(Lib) when is_atom(Lib) ->
 	LibDir = code:lib_dir(Lib),
 	string:substr(LibDir, string:rchr(LibDir, $-) + 1).
+
+% vi:ft=erlang ts=4 sw=4
 

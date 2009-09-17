@@ -1,32 +1,46 @@
-SUBDIRS=
-TEST_MODS=zfor_util zfor_config zfor_main
+ifndef ROOT
+	ROOT = $(shell pwd)
+endif
 
-all: compile boot
-	@for i in $(SUBDIRS); do $(MAKE) -C $$i all; done
+VSN=1.0
+CONFPATH=/usr/local/etc/zfor/
 
-am:
-	@erl -s automake
+COMMON_TEST_LIB = $(shell erl -noshell -eval 'io:format("~s~n", [code:lib_dir(common_test)]).' -s init stop)
+TEST_SERVER_LIB = $(shell erl -noshell -eval 'io:format("~s~n", [code:lib_dir(test_server)]).' -s init stop)
+RUN_TEST_CMD = $(COMMON_TEST_LIB)/priv/bin/run_test
 
-compile:
-	@erl -make
-	@cp src/*.app ebin/
-	@cp src/*.rel .
+INCLUDE = $(PWD)/include
+
+all: boot
+
+subdirs:
+	./gen_rel
+	cd src; VSN=$(VSN) ROOT=$(ROOT) CONFPATH=$(CONFPATH) make
+
+boot: subdirs
+	erl -noshell -pa ./ebin -eval 'systools:make_script("zfor",[]),halt()'
+
+test: test.spec test_do
+
+test_compile: subdirs
+	cd test; \
+		ROOT=$(ROOT) TEST_SERVER=$(TEST_SERVER_LIB) RUN_TEST=$(COMMON_TEST_LIB) make
+
+test_do: test_compile
+	mkdir -p log
+	${RUN_TEST_CMD} -I$(INCLUDE) -pa $(ROOT)/ebin -logdir log -spec test.spec -cover test/zfor.coverspec
+
+test.spec: test.spec.in
+	cat test.spec.in | sed -e "s,@PATH@,$(PWD)," > $(PWD)/test.spec
 
 dialyze:
-	dialyzer --succ_typings -c src/*.erl
-
-boot: compile
-	@erl -noshell -pa ./ebin -eval 'gen_rel:main(), halt()'
-	@erl -noshell -pa ./ebin -eval 'systools:make_script("zfor",[]),halt()'
-
-test: compile
-	@for mod in $(TEST_MODS); do \
-		echo "Running unit-tests for $$mod: "; erl -noshell -pa ebin -s $$mod test -s init stop; \
-	done
+	cd src; make dialyze
 
 clean:
-	@rm -f *~ ebin/* *.boot *.script *.tar.gz *.rel
-	@for i in $(SUBDIRS); do $(MAKE) -C $$i clean; done
+	rm -f *~ ebin/* *.boot *.script *.tar.gz *.rel test.spec src/*.rel.in
+	rm -rf log
+	cd src; ROOT=$(ROOT) make clean
+	cd test; ROOT=$(ROOT) make clean
 
-.PHONY: all compile test
+.PHONY: all
 
