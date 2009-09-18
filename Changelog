@@ -1,3 +1,7 @@
+2009-9-18 Wang Xiaozhe <chaoslaful@gmail.com>
+	* added fixed and remote host list option
+	* added supporting of taobao config server
+
 2009-6-14 Wang Xiaozhe <chaoslawful@gmail.com>
 	* added round-robin selecting method
 
