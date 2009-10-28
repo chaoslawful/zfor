@@ -13,7 +13,7 @@ vendor: Taobao <http://www.taobao.com>
 license: GPLv2
 group: Applications/System
 provides: zfor
-source: http://zfor.googlecode.com/files/zfor-1.0.tar.gz
+source: zfor.tar.gz
 requires: erlang >= R11B
 
 %define _tmppath /tmp
