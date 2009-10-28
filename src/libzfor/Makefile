@@ -7,7 +7,7 @@ ifeq ($(UNAME), Darwin)
  LDFLAGS=-Wl -ldl
 else
  LINK=-shared
- LDFLAGS=-Wl,-rpath=$(PREFIX)/lib -ldl
+ LDFLAGS=-Wl,-rpath=$(PREFIX)/lib64 -Wl,-rpath=$(PREFIX)/lib -ldl
 endif
 
 all: libzfor.so zfor_host override benchmark

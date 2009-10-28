@@ -6,7 +6,7 @@ ERL_NAME=zfor_admin@127.0.0.1
 ZFORD_ERL_NAME=zford@127.0.0.1
 
 NEW_CWD=/tmp
-HOME_DIR=$ROOT/conf/zfor
+HOME_DIR=/etc/zfor
 
 sudo -u nobody sh -c "cd $NEW_CWD; export HOME=$HOME_DIR; $ERL -name $ERL_NAME -noshell -noinput -eval \"rpc:call('$ZFORD_ERL_NAME',zfor_util,dump_health,[]), halt()\""
 

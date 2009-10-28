@@ -34,6 +34,21 @@ dump_config() ->
 	end,
 	io:nl(),
 
+	HostLists=GConf#global_conf.host_list,
+	if
+		erlang:length(HostLists) > 0 ->
+			io:format("Predefined host lists:~n"),
+			lists:foreach(
+				fun ({Name, Tuple}) ->
+					io:format("\t~s => ~p~n", [Name, Tuple])
+				end,
+				HostLists
+			);
+		true ->
+			io:format("No predefined host lists~n")
+	end,
+	io:nl(),
+
 	case ets:match_object(Tid,{{?VHOST_CONFIG_PREFIX,'_'},'_','_'}) of
 		[] ->
 			io:format("No virtual hostnames~n");
@@ -48,6 +63,9 @@ dump_vhost_config([{{?VHOST_CONFIG_PREFIX,VHostname},{{YY,MM,DD},{H,M,S}},VConf}
 			[VHostname,YY,MM,DD,H,M,S]),
 	Hosts=VConf#vhost_conf.hostnames,
 	if
+		erlang:is_tuple(Hosts) ->
+			% host list
+			io:format("Hosts: predefined host list ~p~n", [Hosts]);
 		erlang:length(Hosts)>0 ->
 			io:format("Hosts:~n"),
 			lists:foreach(

@@ -12,6 +12,6 @@ if test "$PHP_ZFOR" != "no"; then
 	PHP_ADD_INCLUDE(../libzfor)
 	PHP_ADD_LIBRARY_WITH_PATH(zfor, ../libzfor, ZFOR_SHARED_LIBADD)
 
-	CPPFLAGS="$CPPFLAGS -Werror -Wall -g -fno-strict-aliasing -Wl,-rpath=$PREFIX/lib"
+	CPPFLAGS="$CPPFLAGS -Werror -Wall -g -fno-strict-aliasing -Wl,-rpath=$PREFIX/lib64 -Wl,-rpath=$PREFIX/lib"
 fi
 

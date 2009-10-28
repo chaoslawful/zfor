@@ -12,7 +12,7 @@ ERL_NAME=zfor_admin@127.0.0.1
 ZFORD_ERL_NAME=zford@127.0.0.1
 
 NEW_CWD=/tmp
-HOME_DIR=$ROOT/conf/zfor
+HOME_DIR=/etc/zfor
 
 # Current working directory must be accessiable for the starting up user,
 # So we change CWD to a world-accessiable place.

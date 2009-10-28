@@ -12,13 +12,13 @@ RUN_ERL=`which run_erl`
 ZFORD_ERL_NAME=zford@127.0.0.1
 
 ERL_SEARCHPATH=$ROOT/share/zfor/ebin
-ZFORD_INETRC=$ROOT/conf/zfor/zfor.inetrc
-ZFORD_LOGCONF=$ROOT/conf/zfor/log.config
+ZFORD_INETRC=/etc/zfor/zfor.inetrc
+ZFORD_LOGCONF=/etc/zfor/log.config
 ZFORD_CONFDIR=$ROOT/etc/zfor/
 ZFORD_BOOT=$ROOT/bin/zfor
 
 NEW_CWD=/tmp
-HOME_DIR=$ROOT/conf/zfor
+HOME_DIR=/etc/zfor
 
 # Current working directory must be accessiable for the starting up user,
 # So we change CWD to a world-accessiable place.
@@ -31,5 +31,5 @@ export HOME=$HOME_DIR
 export HEART_COMMAND="$ERL +K true -heart -name $ZFORD_ERL_NAME -pa $ERL_SEARCHPATH -config $ZFORD_LOGCONF -boot $ZFORD_BOOT -kernel inetrc '\"$ZFORD_INETRC\"' -zfor conf_path '\"$ZFORD_CONFDIR\"' -noshell -noinput"
 
 # Use run_erl to start up zfor server, in order to log stdout messages
-$RUN_ERL -daemon /tmp/ $ROOT/logs/zfor/ "$HEART_COMMAND"
+$RUN_ERL -daemon /tmp/ /var/log/zfor/ "$HEART_COMMAND"
 
