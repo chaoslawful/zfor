@@ -27,12 +27,11 @@ buildroot: %{_tmppath}/%{name}-%{version}-%(%{__id} -u)
 %package -n zfor-client
 summary: ZFOR client library and header files
 group: Development/Libraries
-requires: zfor = %{version}-%{release}
 
 %package -n php-zfor-client
 summary: ZFOR PHP extension
 group: Applications/System
-requires: zfor = %{version}-%{release}, php >= 5.2.9
+requires: zfor-client = %{version}-%{release}, php >= 5.2.9
 
 %description
 ZFOR is a virtual hostname resolver that supports health checking and
