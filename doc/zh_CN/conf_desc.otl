@@ -89,10 +89,13 @@ zfor配置文件格式描述
 			: * 合并方式：scalar，即用后出现的选项值覆盖先出现的值。
 			host_list
 			: * 意义：预定义主机列表。
-			: * 取值类型：tuple()。格式为 {'host_list', Name, {'fixed',
-			: [host()]}} 或 {'host_list', Name, {'confsrv', {Cmd, DatId,
-			: GrpId, SrvHost}}}
-			: * 合并方式：scalar，即用后出现的选项值覆盖先出现的值。
+			: * 取值类型：tuple()。格式为
+			: 	{'host_list', Name::string(), {'fixed', [host()::string()]}}
+			: 或
+			: 	{'host_list', Name::string(), {'confsrv', {Cmd::string(),
+			: 	DatId::string(), GrpId::string(), SrvHost::string()}}}
+			: 这里 SrvHost 为带有可选端口号的主机名地址
+			: * 合并方式：scalar，即用后出现的相同Name的选项值覆盖先出现的值。
 		VirtualHost配置选项
 			host
 			: * 意义：给出虚拟主机下属的主机域名(可以是虚拟主机或实际主机)列
