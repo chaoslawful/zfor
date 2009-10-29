@@ -9,6 +9,7 @@ ext:
 
 pkg:
 	#	$(MAKE) PREFIX=$(PREFIX) -C pkg
+	rm -rf build; \
 	mkdir -p build/{BUILD,RPMS,SOURCES,SPECS,SRPMS}; \
 		export builddir=$(shell pwd)/build; \
 		export cwd=$(shell basename `pwd`); \
