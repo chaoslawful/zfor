@@ -137,7 +137,7 @@ fi
 rm -rf %{buildroot}
 
 %changelog
-* Thu Oct 29 2009 Wang Xiaozhe <chaoslawful@gmail.com>
+* Thu Oct 29 2009 qingwu <qingwu@taobao.com>
 + zfor-1.0-2
 - modified zfor startup config to behave normally in badly configurated
 enterprise environment
