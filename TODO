@@ -1,5 +1,7 @@
 * Complete documents (wikis on github)
 * Intercept getaddrinfo()/freeaddrinfo() calls in zfor client
 * Allow zfor client set target host
+* Export client setting functions to zfor php extension
 * Change host-list implementation to reflect host-list modification to virtual host addresses in time, instead of update while the virtual host config changes
+* Allow user to select HTTP method used for detecting host aliveness, because some home-made web services DO NOT support the default HTTP HEAD method
 
