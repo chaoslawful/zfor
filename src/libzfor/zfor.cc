@@ -226,6 +226,10 @@ fallback:
 
 int zfor_set_udp_port(int port)
 {
+	if(port <= 0 || port > 65535) {
+		return -1;
+	}
+
 	int old_port=zfor_udp_port;
 	zfor_udp_port=port;
 	return old_port;
@@ -233,6 +237,10 @@ int zfor_set_udp_port(int port)
 
 int zfor_set_udp_timeout(int timeout)
 {
+	if(timeout < 0) {
+		return -1;
+	}
+
 	int old_timeout=zfor_udp_timeout;
 	zfor_udp_timeout=timeout;
 	return old_timeout;
