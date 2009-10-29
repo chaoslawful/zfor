@@ -33,6 +33,11 @@ static char zfor_static_buf[sizeof(struct zfor_result_data)+ZFOR_MAX_HOSTADDRS*s
 static int zfor_udp_port=ZFOR_UDP_PORT;
 static int zfor_udp_timeout=ZFOR_UDP_TIMEOUT;
 
+/**
+ * Internal DNS entry function
+ * */
+static struct hostent *zfor_lookup(const char *name, void *resbuf, int resbuflen, int *errp);
+
 // 构造ZFOR UDP请求数据包
 static int zfor_make_req(char *buf, size_t len, char cmd, const void *data, size_t data_len)
 {

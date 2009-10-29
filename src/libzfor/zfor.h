@@ -16,11 +16,6 @@ extern "C" {
 struct hostent *zfor_gethostbyname(const char *name);
 
 /**
- * Internal DNS entry function
- * */
-struct hostent *zfor_lookup(const char *name, void *resbuf, int resbuflen, int *errp);
-
-/**
  * Set UDP port of zfor server
  * */
 int zfor_set_udp_port(int port);
