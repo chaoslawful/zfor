@@ -7,7 +7,7 @@
 summary: ZFOR is a fail-over name resolver.
 name: zfor
 version: 1.0
-release: 2
+release: 4
 url: http://code.google.com/p/zfor/
 vendor: Taobao <http://www.taobao.com>
 license: GPLv2
@@ -137,6 +137,14 @@ fi
 rm -rf %{buildroot}
 
 %changelog
+* Mon Nov 09 2009 qingwu <qingwu@taobao.com>
++ zfor-1.0-4
+- added path to 'runuser' command
+
+* Mon Nov 09 2009 qingwu <qingwu@taobao.com>
++ zfor-1.0-3
+- modified init.d script to replace 'sudo' with 'runuser'
+
 * Thu Oct 29 2009 qingwu <qingwu@taobao.com>
 + zfor-1.0-2
 - modified zfor startup config to behave normally in badly configurated

@@ -7,12 +7,12 @@
 
 start()
 {
-	sudo -u nobody /usr/local/bin/zfor-start
+	/sbin/runuser -s /bin/bash - nobody /usr/local/bin/zfor-start
 }
 
 stop()
 {
-	sudo -u nobody /usr/local/bin/zfor-stop
+	/sbin/runuser -s /bin/bash - nobody /usr/local/bin/zfor-stop
 }
 
 dump()
