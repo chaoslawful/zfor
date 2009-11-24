@@ -467,6 +467,11 @@ merge_kvs({'vhost',VHostName,[H|T]},OldDict,CurDict) ->
 					VRec#vhost_conf{check_port=Port};
 				{'http_path', Path} when is_list(Path) ->
 					VRec#vhost_conf{http_path=Path};
+				{'http_method', Method} when is_atom(Method)
+					, (Method =:= 'head') or (Method =:= 'get') ->
+					VRec#vhost_conf{http_method=Method};
+				{'http_host', HostHeader} when is_list(HostHeader) ->
+					VRec#vhost_conf{http_host=HostHeader};
 				{'check_timeout', Timeout} when is_integer(Timeout), Timeout>0 ->
 					VRec#vhost_conf{check_timeout=Timeout};
 				{'expect_response', Resp} when is_binary(Resp) ->

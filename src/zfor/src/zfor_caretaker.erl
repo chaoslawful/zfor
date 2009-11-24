@@ -342,11 +342,22 @@ check_host_stat(Hostname,VHostConf) ->
 					% 2a. HTTP健康检查方式
 					Path=VHostConf#vhost_conf.http_path,
 					URL=lists:flatten(["http://",inet_parse:ntoa(IP),":",integer_to_list(CheckPort),Path]),
+					Method=VHostConf#vhost_conf.http_method,
+					TmpHeaders=[{"User-Agent",?REMOTE_HTTP_USERAGENT}],
+					HostHeader=VHostConf#vhost_conf.http_host,
+					Headers = if
+						HostHeader =/= undefined -> [{"Host", HostHeader}|TmpHeaders];
+						true -> TmpHeaders
+					end,
+					Version = if
+						HostHeader =/= undefined -> "HTTP/1.1";
+						true -> "HTTP/1.0"
+					end,
 					% 尝试获取远程状态文件信息
 					case http:request(
-							'head',
-							{URL,[{"User-Agent",?REMOTE_HTTP_USERAGENT}]},
-							[{relaxed,true},{version,"HTTP/1.0"}],
+							Method,
+							{URL, Headers},
+							[{relaxed,true},{version, Version}],
 							[]
 						) of
 						{ok,{{_,Status,_},_,_}} ->
@@ -363,7 +374,7 @@ check_host_stat(Hostname,VHostConf) ->
 							end;
 						_ ->
 							% 获取远程状态文件信息失败
-							?WARN_LOG("Failed to http head file: URL is ~p~n",[URL]),
+							?WARN_LOG("Failed to http ~p file: URL is ~p~n",[Method, URL]),
 							DeadState#host_stat{ip=IP}
 					end;
 				'tcp' ->

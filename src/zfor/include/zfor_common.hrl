@@ -40,6 +40,8 @@
 -define(DEFAULT_VHOST_CHECK_TYPE, 'http').
 -define(DEFAULT_VHOST_CHECK_PORT, 80).
 -define(DEFAULT_VHOST_HTTP_PATH, "/status.html").
+-define(DEFAULT_VHOST_HTTP_METHOD, 'head').
+-define(DEFAULT_VHOST_HTTP_HOST, undefined).
 -define(DEFAULT_VHOST_CHECK_TIMEOUT, 2000).
 -define(DEFAULT_VHOST_GROUP_THRESHOLD, 10).
 -define(DEFAULT_VHOST_FAILURE_RESPONSE, 'none').
@@ -87,6 +89,8 @@
 		check_type=?DEFAULT_VHOST_CHECK_TYPE, 		% 虚拟主机下属各个主机健康状态检查方式，类型atom()，取值为http/tcp
 		check_port=?DEFAULT_VHOST_CHECK_PORT, 		% 虚拟主机下属各个主机健康状态连接端口，类型integer
 		http_path=?DEFAULT_VHOST_HTTP_PATH, 			% HTTP健康检查方式使用的检查文件URI路径，类型string()
+		http_method=?DEFAULT_VHOST_HTTP_METHOD,			% HTTP健康检查方式所用的请求方法，类型atom()
+		http_host=?DEFAULT_VHOST_HTTP_HOST,				% HTTP健康检查方式时添加的Host头，类型string()
 		check_timeout=?DEFAULT_VHOST_CHECK_TIMEOUT, 		% 主机健康状态检查操作超时时长，类型integer，单位ms
 		expect_response, 	% 连接到主机以后期望的反馈数据，类型binary()
 		failure_response=?DEFAULT_VHOST_FAILURE_RESPONSE, 	% 虚拟主机下属所有主机健康检查都失败时的解析策略，类型atom()

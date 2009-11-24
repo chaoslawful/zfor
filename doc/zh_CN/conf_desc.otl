@@ -133,9 +133,20 @@ zfor配置文件格式描述
 			: 检查方式选择默认端口，对于 http/tcp 选择端口为 80。
 			: * 取值类型：integer()。
 			: * 合并方式：scalar，即用后出现的选项值覆盖先出现的值。
+			http_method
+			: * 意义：指定进行 http 健康检查时使用的 HTTP 请求方法，若不指定则默认
+			: 为 head。
+			: * 取值类型：atom()，可以是 head、get
+			: * 合并方式：scalar，即用后出现的选项值覆盖先出现的值。
 			http_path
 			: * 意义：指定进行 http 健康检查时的检查文件路径。若不指定则默认
 			: 为 /status.html。
+			: * 取值类型：string()。
+			: * 合并方式：scalar，即用后出现的选项值覆盖先出现的值。
+			http_host
+			: * 意义：指定进行 http 健康检查时添加的 Host 头，若不指定则默认无 Host
+			: 头且以 HTTP/1.0 协议请求，否则会加上指定的 Host 头并以 HTTP/1.1 协议
+			: 请求。
 			: * 取值类型：string()。
 			: * 合并方式：scalar，即用后出现的选项值覆盖先出现的值。
 			check_timeout

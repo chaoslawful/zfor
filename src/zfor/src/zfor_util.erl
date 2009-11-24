@@ -84,7 +84,9 @@ dump_vhost_config([{{?VHOST_CONFIG_PREFIX,VHostname},{{YY,MM,DD},{H,M,S}},VConf}
 	io:format("Check timeout:\t\t~w ms~n",[VConf#vhost_conf.check_timeout]),
 	case VConf#vhost_conf.check_type of
 		'http' ->
-			io:format("HTTP path:\t\t~s~n",[VConf#vhost_conf.http_path]);
+			io:format("HTTP method:\t\t~p~n", [VConf#vhost_conf.http_method]),
+			io:format("HTTP path:\t\t~s~n",[VConf#vhost_conf.http_path]),
+			io:format("HTTP host:\t\t~p~n", [VConf#vhost_conf.http_host]);
 		'tcp' ->
 			io:format("Expect response:\t~w~n",[VConf#vhost_conf.expect_response])
 	end,
