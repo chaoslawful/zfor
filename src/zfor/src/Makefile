@@ -5,7 +5,7 @@ INCLUDE = $(ROOT)/include
 APP_TARGET = $(EBIN)/zfor.app
 REL_TARGET = $(ROOT)/zfor.rel
 DIALYZER_OPT = -c --src \
-			  --dump_callgraph zfor_callgraph.dot
+			  --dump_callgraph /tmp/zfor_callgraph.dot
 
 ERL_COMPILE_FLAGS += \
 	-DDEBUG \

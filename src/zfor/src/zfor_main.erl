@@ -5,6 +5,7 @@
 -compile([debug_info, bin_opt_info]).
 %-compile([debug_info,export_all]).
 
+-spec start_link(string()) -> term() | {error, term()}.
 start_link(ConfPath) ->
 	proc_lib:start_link(?MODULE,init,[self(),ConfPath]).
 

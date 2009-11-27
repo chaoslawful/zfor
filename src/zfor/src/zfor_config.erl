@@ -5,19 +5,21 @@
 -compile([debug_info, bin_opt_info]).
 %-compile([debug_info,export_all]).
 
--spec reload_conf(#server_state{}) -> {boolean(), #server_state{}}.
 % 检查本地和远程配置文件是否发生变动，若有变化则重新载入所有本地和远程配置文件
 % 返回值：{true / false, record(server_state)}
+-spec reload_conf(#server_state{}) -> {boolean(), #server_state{}}.
 reload_conf(State) ->
 	scan_and_reload_conf(State).
 
 % 设置新的本地配置文件目录
 % 返回值：record(server_state)
+-spec set_conf_path(#server_state{}, string()) -> #server_state{}.
 set_conf_path(State,ConfPath) ->
 	State#server_state{conf_path=ConfPath}.
 
 % 获取全局配置记录
 % 返回值：record(global_conf)
+-spec get_global_conf(#server_state{}) -> #global_conf{}.
 get_global_conf(State) ->
 	Tid=State#server_state.conf_ets_id,
 	case ets:lookup(Tid,?GLOBAL_CONFIG_KEY) of
@@ -27,6 +29,7 @@ get_global_conf(State) ->
 
 % 获取给定的虚拟主机配置记录
 % 返回值：{ok, integer(), record(vhost_conf)} / undefined
+-spec get_vhost_conf(#server_state{}, string()) -> {ok, integer(), #vhost_conf{}} | undefined.
 get_vhost_conf(State,VHostname) ->
 	Tid=State#server_state.conf_ets_id,
 	VHostKey={?VHOST_CONFIG_PREFIX,VHostname},
@@ -37,6 +40,8 @@ get_vhost_conf(State,VHostname) ->
 
 % 获取所有虚拟主机配置记录
 % 返回值：{ok, [{VHostConfKey, integer(), record(vhost_conf)}]} / undefined
+-type vhost_conf_key() :: {atom(), string()}.
+-spec get_all_vhost_conf(#server_state{}) -> {ok, [{vhost_conf_key(), integer(), #vhost_conf{}}]} | undefined.
 get_all_vhost_conf(State) ->
 	Tid=State#server_state.conf_ets_id,
 	case ets:match_object(Tid,{{?VHOST_CONFIG_PREFIX,'_'},'_','_'}) of
