@@ -6,7 +6,7 @@
 #	/var/log/zfor/*		- zfor run-time log files
 summary: ZFOR is a fail-over name resolver.
 name: zfor
-version: 1.0.1
+version: 1.0.2
 release: 1
 url: http://code.google.com/p/zfor/
 vendor: Taobao <http://www.taobao.com>
@@ -137,11 +137,15 @@ fi
 rm -rf %{buildroot}
 
 %changelog
+* Fri Nov 27 2009 qingwu <qingwu@taobao.com>
++ zfor-1.0.2-1
+- fixed bug: failed to resolve virtual hostname nor show zfor status when using
+'grp_all' selection method
+
 * Tue Nov 24 2009 qingwu <qingwu@taobao.com>
 + zfor-1.0.1-1
 - allow user to specify http method while performing health check
-- allow user to specify http host header, in order to support
-virtual servers
+- allow user to specify http host header, in order to support virtual servers
 
 * Mon Nov 09 2009 qingwu <qingwu@taobao.com>
 + zfor-1.0-4
