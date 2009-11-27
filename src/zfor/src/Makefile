@@ -30,7 +30,7 @@ all: $(MODS)
 $(MODS): $(INCLUDE)/zfor_common.hrl
 
 dialyze:
-	dialyzer --succ_typings -c ${SOURCES:%=%.erl}
+	dialyzer -c ${SOURCES:%=%.erl}
 
 clean:	
 	rm -rf $(EBIN)/*.$(EMULATOR) $(APP_TARGET) $(REL_TARGET) $(EBIN)/erl_crash.dump *~

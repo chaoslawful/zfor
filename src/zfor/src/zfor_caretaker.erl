@@ -316,7 +316,7 @@ make_vhost_stat(VHostname,HostStats,VHostConf) ->
 						)],
 					GrpActiveHostIPs=lists:map(fun (#host_stat{ip=IP}) -> IP end, GrpActiveHosts),
 					% 虚拟主机地址就是组内所有活动主机地址
-					AliveVHost#vhost_stat{ips=[GrpActiveHostIPs]};
+					AliveVHost#vhost_stat{ips=GrpActiveHostIPs};
 				_ ->
 					% 没有活动主机，虚拟主机域名不可用
 					DeadVHost

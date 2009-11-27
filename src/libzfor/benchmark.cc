@@ -21,7 +21,7 @@ int kbhit()
 
 	if(select(STDIN_FILENO+1,&rfds,NULL,NULL,&tv)>0) {
 		if(FD_ISSET(STDIN_FILENO,&rfds)) {
-			read(STDIN_FILENO,buf,sizeof(buf));
+			(void)read(STDIN_FILENO,buf,sizeof(buf));
 			return 1;
 		}
 	}
@@ -48,7 +48,7 @@ int main(int argc,char *argv[])
 	}
 	gettimeofday(&end,NULL);
 
-	printf("Total count: %ld\n",cnt);
+	printf("Total count: %d\n",cnt);
 	printf("Total time: %lg s\n",(end.tv_sec-begin.tv_sec)+1e-6*(end.tv_usec-begin.tv_usec));
 }
 

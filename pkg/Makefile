@@ -17,30 +17,30 @@ ext-pkg: ext-tgz ext-deb ext-rpm
 tgz:
 	sudo rm -rf $(TMP_DIR); \
 	mkdir -p $(TMP_ROOT)/bin; \
-	mkdir -p $(TMP_ROOT)/lib; \
-	mkdir -p $(TMP_ROOT)/include; \
 	mkdir -p $(TMP_ROOT)/share/zfor/ebin; \
 	mkdir -p $(TMP_ROOT)/share/zfor/src; \
 	mkdir -p $(TMP_ROOT)/share/zfor/include; \
-	mkdir -p $(TMP_ROOT)/logs/zfor; \
-	mkdir -p $(TMP_ROOT)/conf/zfor; \
 	mkdir -p $(TMP_ROOT)/etc/zfor; \
+	mkdir -p $(TMP_DIR)/etc/zfor; \
+	mkdir -p $(TMP_DIR)/var/log/zfor; \
+	mkdir -p $(TMP_ROOT)/lib; \
+	mkdir -p $(TMP_ROOT)/include; \
 	cp ../src/libzfor/libzfor.so $(TMP_ROOT)/lib/; \
 	cp ../src/zfor/zfor.boot $(TMP_ROOT)/bin/; \
 	cp ../bin/* $(TMP_ROOT)/bin/; \
-	cp ../src/libzfor/zfor_host $(TMP_ROOT)/bin/; \
+	cp ../src/libzfor/zfor_host $(TMP_ROOT)/bin/zfor-host; \
 	cp ../src/zfor/ebin/* $(TMP_ROOT)/share/zfor/ebin/; \
 	cp ../src/zfor/src/* $(TMP_ROOT)/share/zfor/src/; \
 	cp ../src/zfor/include/* $(TMP_ROOT)/share/zfor/include/; \
-	cp ../cfg/* $(TMP_ROOT)/conf/zfor/; \
-	mv $(TMP_ROOT)/conf/zfor/erlang.cookie $(TMP_ROOT)/conf/zfor/.erlang.cookie; \
+	cp ../cfg/* $(TMP_DIR)/etc/zfor/; \
+	mv $(TMP_DIR)/etc/zfor/erlang.cookie $(TMP_DIR)/etc/zfor/.erlang.cookie; \
 	cp ../src/libzfor/zfor.h $(TMP_ROOT)/include/; \
-	perl -i -pe 's#\$$\(PREFIX\)#$(PREFIX)#g' $(TMP_ROOT)/conf/zfor/*; \
+	perl -i -pe 's#\$$\(PREFIX\)#$(PREFIX)#g' $(TMP_DIR)/etc/zfor/*; \
 	perl -i -pe 's#\$$\(PREFIX\)#$(PREFIX)#g' $(TMP_ROOT)/bin/*; \
 	sudo chown -R root:root $(TMP_ROOT); \
-	sudo chown nobody: $(TMP_ROOT)/logs/zfor; \
-	sudo chown nobody: $(TMP_ROOT)/conf/zfor/.erlang.cookie; \
-	sudo chmod 0400 $(TMP_ROOT)/conf/zfor/.erlang.cookie; \
+	sudo chown nobody: $(TMP_DIR)/var/log/zfor; \
+	sudo chown nobody: $(TMP_DIR)/etc/zfor/.erlang.cookie; \
+	sudo chmod 0400 $(TMP_DIR)/etc/zfor/.erlang.cookie; \
 	sudo tar -czf ./$(PKGNAME).tgz -P --transform "s/$(SLASHED_TMP_DIR)//" $(TMP_DIR); \
 	sudo chmod a+rw ./$(PKGNAME).tgz;
 
