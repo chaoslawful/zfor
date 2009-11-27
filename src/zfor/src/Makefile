@@ -4,6 +4,8 @@ INCLUDE = $(ROOT)/include
 
 APP_TARGET = $(EBIN)/zfor.app
 REL_TARGET = $(ROOT)/zfor.rel
+DIALYZER_OPT = -c --src \
+			  --dump_callgraph zfor_callgraph.dot
 
 ERL_COMPILE_FLAGS += \
 	-DDEBUG \
@@ -30,7 +32,7 @@ all: $(MODS)
 $(MODS): $(INCLUDE)/zfor_common.hrl
 
 dialyze:
-	dialyzer -c ${SOURCES:%=%.erl}
+	dialyzer $(DIALYZER_OPT) ${SOURCES:%=%.erl}
 
 clean:	
 	rm -rf $(EBIN)/*.$(EMULATOR) $(APP_TARGET) $(REL_TARGET) $(EBIN)/erl_crash.dump *~

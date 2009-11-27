@@ -1,4 +1,3 @@
--include_lib("eunit/include/eunit.hrl").
 -include_lib("kernel/include/file.hrl").
 
 -define(DEFAULT_CONFIG_PATH,"/usr/local/etc/zfor/"). 	% 默认本地配置文件保存目录

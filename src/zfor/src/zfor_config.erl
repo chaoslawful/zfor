@@ -5,6 +5,7 @@
 -compile([debug_info, bin_opt_info]).
 %-compile([debug_info,export_all]).
 
+-spec reload_conf(#server_state{}) -> {boolean(), #server_state{}}.
 % 检查本地和远程配置文件是否发生变动，若有变化则重新载入所有本地和远程配置文件
 % 返回值：{true / false, record(server_state)}
 reload_conf(State) ->
