@@ -45,76 +45,87 @@
 -define(DEFAULT_VHOST_GROUP_THRESHOLD, 10).
 -define(DEFAULT_VHOST_FAILURE_RESPONSE, 'none').
 
+-type datetime()::{date(), time()}.
+
 % ZFOR服务状态数据结构
 -record(server_state,
 	{
-		proc_dict, 							% 保存当前启动的功能进程列表
-		conf_temp_dict, 					% 配置数据解析过程中临时保存配置数据的字典
-		conf_last_update={{1980,1,1},{0,0,0}}, 	% 最近配置数据更新时间(localtime)
-		conf_last_checksum, 				% 最近配置目录下各个文件/目录的inode校验和
-		conf_path=?DEFAULT_CONFIG_PATH, 	% 配置文件放置路径
-		resolv_path=?DEFAULT_RESOLV_PATH, 	% 系统DNS配置文件放置路径
-		resolv_last_checksum, 				% 系统DNS配置文件inode校验和
-		conf_ets_id, 	% 保存ZFOR配置数据的ETS表ID
-		health_ets_id 	% 保存虚拟主机健康检查数据的ETS表ID
+		proc_dict::dict(), 							% 保存当前启动的功能进程列表
+		conf_temp_dict::dict(), 					% 配置数据解析过程中临时保存配置数据的字典
+		conf_last_update={{1980,1,1},{0,0,0}}::datetime(), 	% 最近配置数据更新时间(localtime)
+		conf_last_checksum::binary(), 				% 最近配置目录下各个文件/目录的inode校验和
+		conf_path=?DEFAULT_CONFIG_PATH::string(), 	% 配置文件放置路径
+		resolv_path=?DEFAULT_RESOLV_PATH::string(), 	% 系统DNS配置文件放置路径
+		resolv_last_checksum::binary(), 				% 系统DNS配置文件inode校验和
+		conf_ets_id::atom(), 	% 保存ZFOR配置数据的ETS表ID
+		health_ets_id::atom() 	% 保存虚拟主机健康检查数据的ETS表ID
 	}
 ).
+-type server_state()::#server_state{}.
 
 % 功能进程项记录
 -record(proc_info,
 	{
-		ts, 	% 进程活动检查时戳。localtime()
-		pid 	% 进程ID。pid()
+		ts::datetime(), 	% 进程活动检查时戳。localtime()
+		pid::pid() 	% 进程ID。pid()
 	}
 ).
+-type proc_info()::#proc_info{}.
 
 % 全局配置参数记录结构
 -record(global_conf,
 	{
-		host_list = ?DEFAULT_HOST_LIST,		% 主机列表定义，类型[{string(), tuple()}]
-		config_url=?DEFAULT_GLOBAL_CONFIG_URL, 		% 远程配置文件URL列表，类型[string()]
-		config_ttl=?DEFAULT_GLOBAL_CONFIG_TTL, 		% 配置数据有效时长，类型integer，单位ms
-		resolve_timeout=?DEFAULT_GLOBAL_RESOLVE_TIMEOUT, 	% 主机域名解析超时时长，类型integer，单位ms
-		server_port=?DEFAULT_GLOBAL_SERVER_PORT 		% zfor服务监听端口(仅在服务启动时有效)，类型integer
+		host_list=?DEFAULT_HOST_LIST::[{string(),tuple()}],		% 主机列表定义，类型[{string(), tuple()}]
+		config_url=?DEFAULT_GLOBAL_CONFIG_URL::[string()], 		% 远程配置文件URL列表，类型[string()]
+		config_ttl=?DEFAULT_GLOBAL_CONFIG_TTL::integer(), 		% 配置数据有效时长，类型integer，单位ms
+		resolve_timeout=?DEFAULT_GLOBAL_RESOLVE_TIMEOUT::integer(), 	% 主机域名解析超时时长，类型integer，单位ms
+		server_port=?DEFAULT_GLOBAL_SERVER_PORT::integer() 		% zfor服务监听端口(仅在服务启动时有效)，类型integer
 	}
 ).
+-type global_conf()::#global_conf{}.
 
 % 虚拟主机配置参数记录结构
 -record(vhost_conf,
 	{
-		hostnames=?DEFAULT_VHOST_HOST, 				% 虚拟主机下属主机域名列表，类型[string()]
-		select_method=?DEFAULT_VHOST_SELECT_METHOD, 		% 虚拟主机下属主机选择策略，类型atom()
-		check_ttl=?DEFAULT_VHOST_CHECK_TTL, 			% 虚拟主机下属各个主机的健康状态有效时长，类型integer，单位ms
-		check_type=?DEFAULT_VHOST_CHECK_TYPE, 		% 虚拟主机下属各个主机健康状态检查方式，类型atom()，取值为http/tcp
-		check_port=?DEFAULT_VHOST_CHECK_PORT, 		% 虚拟主机下属各个主机健康状态连接端口，类型integer
-		http_path=?DEFAULT_VHOST_HTTP_PATH, 			% HTTP健康检查方式使用的检查文件URI路径，类型string()
-		http_method=?DEFAULT_VHOST_HTTP_METHOD,			% HTTP健康检查方式所用的请求方法，类型atom()
-		http_host=?DEFAULT_VHOST_HTTP_HOST,				% HTTP健康检查方式时添加的Host头，类型string()
-		check_timeout=?DEFAULT_VHOST_CHECK_TIMEOUT, 		% 主机健康状态检查操作超时时长，类型integer，单位ms
-		expect_response, 	% 连接到主机以后期望的反馈数据，类型binary()
-		failure_response=?DEFAULT_VHOST_FAILURE_RESPONSE, 	% 虚拟主机下属所有主机健康检查都失败时的解析策略，类型atom()
-		group_threshold=?DEFAULT_VHOST_GROUP_THRESHOLD 	% 主机响应时间成组门限时长，类型integer，单位ms
+		hostnames=?DEFAULT_VHOST_HOST::({'host_list', string()} | [string()]), 				% 虚拟主机下属主机域名列表，类型[string()]
+		select_method=?DEFAULT_VHOST_SELECT_METHOD::atom(), 		% 虚拟主机下属主机选择策略，类型atom()
+		check_ttl=?DEFAULT_VHOST_CHECK_TTL::integer(), 			% 虚拟主机下属各个主机的健康状态有效时长，类型integer，单位ms
+		check_type=?DEFAULT_VHOST_CHECK_TYPE::atom(), 		% 虚拟主机下属各个主机健康状态检查方式，类型atom()，取值为http/tcp
+		check_port=?DEFAULT_VHOST_CHECK_PORT::integer(), 		% 虚拟主机下属各个主机健康状态连接端口，类型integer
+		http_path=?DEFAULT_VHOST_HTTP_PATH::string(), 			% HTTP健康检查方式使用的检查文件URI路径，类型string()
+		http_method=?DEFAULT_VHOST_HTTP_METHOD::atom(),			% HTTP健康检查方式所用的请求方法，类型atom()
+		http_host=?DEFAULT_VHOST_HTTP_HOST::('undefined' | string()),				% HTTP健康检查方式时添加的Host头，类型string()
+		check_timeout=?DEFAULT_VHOST_CHECK_TIMEOUT::integer(), 		% 主机健康状态检查操作超时时长，类型integer，单位ms
+		expect_response::('undefined' | binary()), 	% 连接到主机以后期望的反馈数据，类型binary()
+		failure_response=?DEFAULT_VHOST_FAILURE_RESPONSE::atom(), 	% 虚拟主机下属所有主机健康检查都失败时的解析策略，类型atom()
+		group_threshold=?DEFAULT_VHOST_GROUP_THRESHOLD::integer() 	% 主机响应时间成组门限时长，类型integer，单位ms
 	}
 ).
+-type vhost_conf()::#vhost_conf{}.
+-type vhost_conf_key()::{atom(), string()}.
+-type vhost_conf_obj()::{vhost_conf_key(), datetime(), vhost_conf()}.
 
-% 虚拟主机健康状态记录结构
--record(vhost_stat,
-	{
-		state, 		% 虚拟主机最近一次综合健康检查状态，类型atom()，取值为alive/dead
-		ips, 		% 虚拟主机在最近一次综合健康检查中根据自己配置的主机选择策略决定的IPv4地址，类型[tuple()]
-		host_stats 	% 虚拟主机下属各个实际主机最近一次综合健康检查状态，类型[record(host_stat)]
-	}
-).
 
 % 实际主机健康状态记录结构
 -record(host_stat,
 	{
-		hostname, 	% 虚拟主机下属实际主机域名，类型string()
-		state, 		% 虚拟主机下属实际主机最近一次健康检查状态，类型atom()，取值为alive/dead
-		ip, 		% 虚拟主机下属实际主机最近一次健康检查解析出的IPv4地址，类型tuple()
-		rt 			% 虚拟主机下属实际主机最近一次健康检查的总响应时间(ms)，类型integer()
+		hostname::string(), 	% 虚拟主机下属实际主机域名，类型string()
+		state::atom(), 		% 虚拟主机下属实际主机最近一次健康检查状态，类型atom()，取值为alive/dead
+		ip::tuple(), 		% 虚拟主机下属实际主机最近一次健康检查解析出的IPv4地址，类型tuple()
+		rt::integer() 			% 虚拟主机下属实际主机最近一次健康检查的总响应时间(ms)，类型integer()
 	}
 ).
+-type host_stat()::#host_stat{}.
+
+% 虚拟主机健康状态记录结构
+-record(vhost_stat,
+	{
+		state::atom(), 		% 虚拟主机最近一次综合健康检查状态，类型atom()，取值为alive/dead
+		ips::[tuple()], 		% 虚拟主机在最近一次综合健康检查中根据自己配置的主机选择策略决定的IPv4地址，类型[tuple()]
+		host_stats::[host_stat()] 	% 虚拟主机下属各个实际主机最近一次综合健康检查状态，类型[record(host_stat)]
+	}
+).
+-type vhost_stat()::#vhost_stat{}.
 
 % vim:ft=erlang ts=4 sw=4
 

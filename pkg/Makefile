@@ -1,4 +1,4 @@
-PREFIX=/usr/local
+PREFIX=/opt/zfor
 TMP_DIR=/tmp/yk_zfor
 SLASHED_TMP_DIR=$(shell echo $(TMP_DIR)|sed 's/\//\\\//g')
 TMP_ROOT=$(TMP_DIR)/$(PREFIX)

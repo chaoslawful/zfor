@@ -1,10 +1,11 @@
 -module(zfor_hostlist).
 -export([replace_host_list/1]).
--compile([bin_opt_info]).
+-compile([debug_info, bin_opt_info]).
 -include("zfor_common.hrl").
 
 % 从服务器配置数据中获取定义的主机列表并更新用到了主机列表的虚拟主机配置项
 % @spec replace_host_list(State::record(server_state)) -> record(server_state)
+-spec replace_host_list(#server_state{}) -> #server_state{}.
 replace_host_list(State) when is_record(State, server_state) ->
 	LookupDict = dump_host_list(State),
 	NewState = replace_vhost(State, LookupDict),
