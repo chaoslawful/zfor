@@ -4,16 +4,16 @@
 -export([system_continue/3, system_terminate/4]).
 -compile([debug_info, bin_opt_info]).
 
--spec start_link(string()) -> term() | {error, term()}.
+-spec start_link(ConfPath :: string()) -> term() | {'error', term()}.
 start_link(ConfPath) ->
 	proc_lib:start_link(?MODULE, init, [self(), ConfPath]).
 
--spec stop() -> ok.
+-spec stop() -> 'ok'.
 stop() ->
 	?ZFOR_MAIN_SRVNAME ! stop,
 	ok.
 
--spec init(pid(), string()) -> ok.
+-spec init(Parent :: pid(), ConfPath :: string()) -> 'ok'.
 init(Parent, ConfPath) ->
 	register(?ZFOR_MAIN_SRVNAME, self()),
 	% 用当前时间初始化随机数发生器
@@ -32,7 +32,7 @@ init(Parent, ConfPath) ->
 	proc_lib:init_ack(Parent, {ok, self()}),
 	loop(Parent, DbgOpts, State).
 
--spec loop(pid(), [term()], #server_state{}) -> ok.
+-spec loop(Parent :: pid(), DbgOpts :: [term()], OldState :: server_state()) -> 'ok'.
 loop(Parent, DbgOpts, OldState) ->
 	DbgOpts2 = sys:handle_debug(
 		DbgOpts, {?MODULE, debug_output}, ?MODULE,
@@ -91,7 +91,7 @@ loop(Parent, DbgOpts, OldState) ->
 	end.
 
 % 根据全局和虚拟主机配置数据更新功能进程字典
--spec update_procdict_by_conf(#server_state{}, datetime()) -> #server_state{}.
+-spec update_procdict_by_conf(State :: server_state(), TS :: datetime()) -> server_state().
 update_procdict_by_conf(State, TS) ->
 	GConf = zfor_config:get_global_conf(State),
 	OldProcDict = State#server_state.proc_dict,
@@ -132,7 +132,7 @@ update_procdict_by_conf(State, TS) ->
 
 % 遍历功能进程字典，检查所有已经更新的进程项，对于未启动或已经退出的项重新启动对应
 % 类型的功能进程。对于未更新的进程项则强行杀死对应的进程并将其从字典中删除。
--spec supervise_procdict(#server_state{}, datetime()) -> #server_state{}.
+-spec supervise_procdict(State :: server_state(), TS :: datetime()) -> server_state().
 supervise_procdict(State, TS) ->
 	OldProcDict = State#server_state.proc_dict,
 	NewProcDict = dict:fold(
@@ -175,7 +175,7 @@ supervise_procdict(State, TS) ->
 	% 更新服务状态中的功能进程字典
 	State#server_state{proc_dict = NewProcDict}.
 
--spec system_continue(pid(), [term()], #server_state{}) -> ok.
+-spec system_continue(Parent :: pid(), DbgOpts :: [term()], State :: server_state()) -> 'ok'.
 system_continue(Parent, DbgOpts, State) ->
 	NewDbgOpts = sys:handle_debug(
 		DbgOpts, {?MODULE, debug_output}, ?MODULE,
@@ -183,17 +183,17 @@ system_continue(Parent, DbgOpts, State) ->
 	),
 	loop(Parent, NewDbgOpts, State).
 
--spec system_terminate(term(), pid(), [term()], #server_state{}) -> true.
+-spec system_terminate(Reason :: term(), Parent :: pid(), DbgOpts :: [term()], State :: server_state()) -> true.
 system_terminate(Reason, _Parent, DbgOpts, State) ->
 	sys:handle_debug(DbgOpts, {?MODULE, debug_output}, ?MODULE, {"service terminating", State}),
 	stop_all_proc(State),
 	exit(Reason).
 
--spec debug_output(term(), term(), term()) -> ok.
+-spec debug_output(Dev :: term(), Event :: term(), Name :: term()) -> 'ok'.
 debug_output(Dev, Event, Name) ->
 	io:format(Dev, "* ~p event: ~p~n", [Name, Event]).
 
--spec stop_all_proc(#server_state{}) -> ok.
+-spec stop_all_proc(State :: server_state()) -> 'ok'.
 stop_all_proc(State) ->
 	ProcDict = State#server_state.proc_dict,
 	% 遍历功能进程字典，杀死所有已经派生的功能进程

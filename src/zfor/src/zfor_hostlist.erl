@@ -4,14 +4,14 @@
 -include("zfor_common.hrl").
 
 % 从服务器配置数据中获取定义的主机列表并更新用到了主机列表的虚拟主机配置项
-% @spec replace_host_list(State::record(server_state)) -> record(server_state)
--spec replace_host_list(#server_state{}) -> #server_state{}.
+-spec replace_host_list(State :: server_state()) -> server_state().
 replace_host_list(State) when is_record(State, server_state) ->
 	LookupDict = dump_host_list(State),
 	NewState = replace_vhost(State, LookupDict),
 	NewState.
 
 % 根据给定的主机列表定义更新服务器配置数据中的虚拟主机配置项
+-spec replace_vhost(State :: server_state(), LookupDict :: dict()) -> server_state().
 replace_vhost(State, LookupDict) ->
 	TempDict = State#server_state.conf_temp_dict,
 	NewDict = dict:map(
@@ -36,7 +36,7 @@ replace_vhost(State, LookupDict) ->
 	State#server_state{conf_temp_dict = NewDict}.
 
 % 将服务器配置数据中当前定义的主机列表导出为字典形式以便查找，并在必要时从远程获取主机列表
-% @spec dump_host_list(State::record(server_state)) -> dict()
+-spec dump_host_list(State :: server_state()) -> dict().
 dump_host_list(State) ->
 	TempDict = State#server_state.conf_temp_dict,
 	GRec = case dict:find(?GLOBAL_CONFIG_KEY, TempDict) of
@@ -46,6 +46,7 @@ dump_host_list(State) ->
 	HostList = GRec#global_conf.host_list,
 	dump_host_list(HostList, [], []).
 
+-spec dump_host_list(HostLists :: [tuple()], FixHostList :: [tuple()], RmtHostList :: [tuple()]) -> dict().
 dump_host_list([], FixHostList, RmtHostList) ->
 	% 将固定主机列表合并到导出字典中
 	ResDict = store_fixed_host_list_to_dict(FixHostList, dict:new()),
@@ -59,9 +60,11 @@ dump_host_list([{Name, {'fixed', Hosts}} | Rest], FixHostList, RmtHostList) ->
 dump_host_list([{Name, {'confsrv', _} = Tuple} | Rest], FixHostList, RmtHostList) ->
 	dump_host_list(Rest, FixHostList, [{Name, Tuple} | RmtHostList]).
 
+-spec store_fixed_host_list_to_dict(HostLists :: [tuple()], Dict :: dict()) -> dict().
 store_fixed_host_list_to_dict([], Dict) -> Dict;
 store_fixed_host_list_to_dict([{Name, Hosts} | Rest], Dict) -> store_fixed_host_list_to_dict(Rest, dict:store(Name, Hosts, Dict)).
 
+-spec store_result_to_dict(HostLists :: [tuple()], Results :: [tuple()], Dict :: dict()) -> dict().
 store_result_to_dict([], [], Dict) -> Dict;
 store_result_to_dict([{Name, _} | R1], [{ok, Hosts} | R2], Dict) -> store_result_to_dict(R1, R2, dict:store(Name, Hosts, Dict));
 store_result_to_dict([{Name, _} | R1], [{error, _} | R2], Dict) -> store_result_to_dict(R1, R2, dict:store(Name, [], Dict)).
@@ -71,6 +74,7 @@ store_result_to_dict([{Name, _} | R1], [{error, _} | R2], Dict) -> store_result_
 %	192.168.212.169:12200?CLIENTRETRYCONNECTIONTIMES=3&CLIENTRETRYCONNECTIONTIMEOUT=1000&_SERIALIZETYPE=hessian&_IDLETIMEOUT=600&_TIMEOUT=3000\n
 %	192.168.212.170:12200?CLIENTRETRYCONNECTIONTIMES=3&CLIENTRETRYCONNECTIONTIMEOUT=1000&_SERIALIZETYPE=hessian&_IDLETIMEOUT=600&_TIMEOUT=3000\n
 %	192.168.212.171:12200?CLIENTRETRYCONNECTIONTIMES=3&CLIENTRETRYCONNECTIONTIMEOUT=1000&_SERIALIZETYPE=hessian&_IDLETIMEOUT=600&_TIMEOUT=3000
+-spec fetch_and_parse_host_list(ConfSrvHostList :: tuple()) -> [string()].
 fetch_and_parse_host_list({_, {'confsrv', {Cmd, DatId, GrpId, SrvHost}}}) ->
 	Url = lists:flatten(["http://", SrvHost, "/?command=", Cmd, "&dataId=", DatId, "&groupId=", GrpId]),
 	{'ok', {{_, 200, _}, _, Body}} = http:request(

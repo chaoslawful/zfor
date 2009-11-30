@@ -18,155 +18,175 @@
 		del_vhost_curhost/2
 		]).
 -compile([debug_info, bin_opt_info]).
-%-compile([debug_info,export_all]).
 
 % 删除指定虚拟主机的健康记录
-% 返回值：true
-del_vhost(State,VHostname) ->
-	HealthTid=State#server_state.health_ets_id,
-	VHostKey={?VHOST_HEALTH_PREFIX,VHostname},
-	ets:delete(HealthTid,VHostKey),
-	del_vhost_curhost(State,VHostname).
+-spec del_vhost(State::server_state(), VHostname::string()) -> true.
+del_vhost(State, VHostname) ->
+	HealthTid = State#server_state.health_ets_id,
+	VHostKey = {?VHOST_HEALTH_PREFIX, VHostname},
+	ets:delete(HealthTid, VHostKey),
+	del_vhost_curhost(State, VHostname).
 
 % 从ETS健康状态表中查找指定虚拟主机的记录
-% 返回值：{ok, record(vhost_stat)} / undefined
-get_vhost(State,VHostname) ->
-	Tid=State#server_state.health_ets_id,
-	VHostKey={?VHOST_HEALTH_PREFIX,VHostname},
-	case ets:lookup(Tid,VHostKey) of
-		[{VHostKey,_,VHostStat}] ->
-			{ok,VHostStat};
+-spec get_vhost(State::server_state(), VHostname::string()) -> {'ok', vhost_stat()} | 'undefined'.
+get_vhost(State, VHostname) ->
+	Tid = State#server_state.health_ets_id,
+	VHostKey = {?VHOST_HEALTH_PREFIX, VHostname},
+	case ets:lookup(Tid, VHostKey) of
+		[{VHostKey, _, VHostStat}] ->
+			{ok, VHostStat};
 		_ ->
 			undefined
 	end.
 
 % 强制检查并更新指定虚拟主机的健康状态(阻塞)
-% 返回值：true / false
-refresh_status(State,VHostname) ->
-	case zfor_config:get_vhost_conf(State,VHostname) of
-		undefined->
+-spec refresh_status(State::server_state(), VHostname::string()) -> boolean().
+refresh_status(State, VHostname) ->
+	case zfor_config:get_vhost_conf(State, VHostname) of
+		undefined ->
 			% 没有在配置数据ETS表中发现有效的虚拟主机设定
 			false;
-		{ok,_,VHostConf} ->
+		{ok, _, VHostConf} ->
 			% 对虚拟主机进行健康检查，并将检查结果更新到ETS表中
-			check_and_update_vhost_stat(State,VHostname,VHostConf),
+			check_and_update_vhost_stat(State, VHostname, VHostConf),
 			true
 	end.
 
 % 派生虚拟主机健康状态监控进程，会按照ETS表中对应虚拟主机的最新配置
 % 进行健康检查，并在找不到虚拟主机对应的配置数据时退出。
-% 返回值：ok
-vhost_checker(State,VHostname) ->
-	case zfor_config:get_vhost_conf(State,VHostname) of
+-spec vhost_checker(State::server_state(), VHostname::string()) -> 'ok'.
+vhost_checker(State, VHostname) ->
+	case zfor_config:get_vhost_conf(State, VHostname) of
 		{ok, _, VHostConf} ->
 			% 对虚拟主机进行健康检查，并将检查结果更新到ETS表中
-			check_and_update_vhost_stat(State,VHostname,VHostConf),
+			check_and_update_vhost_stat(State, VHostname, VHostConf),
 			% 基于虚拟主机健康检查状态有效时长休眠
 			zfor_util:sleep(VHostConf#vhost_conf.check_ttl),
-			vhost_checker(State,VHostname);
+			vhost_checker(State, VHostname);
 		_ ->
 			% 无法在配置数据中找到给定虚拟主机对应的配置项，说明已经不需要该虚拟主机了
 			% 删除当前虚拟主机对应的ETS健康状态记录并退出
-			del_vhost(State,VHostname),
+			del_vhost(State, VHostname),
 			ok
 	end.
 
 % Increase the curhost index of the specified virtual host
-% @retval: CurHostIdx
-inc_vhost_curhost(State,VHostname,Step) ->
-	HealthTid=State#server_state.health_ets_id,
-	VHostKey={?VHOST_CURHOST_PREFIX,VHostname},
+-spec inc_vhost_curhost(State::server_state(), VHostname::string(), Step::integer()) -> integer().
+inc_vhost_curhost(State, VHostname, Step) ->
+	HealthTid = State#server_state.health_ets_id,
+	VHostKey = {?VHOST_CURHOST_PREFIX, VHostname},
 	case catch(ets:update_counter(HealthTid, VHostKey, {?VHOST_CURHOST_POS, Step})) of
 		Result when erlang:is_integer(Result) ->
 			% update curhost index successfully
 			Result;
 		_ ->
 			% update curhost index failed, try to insert a new curhost record
-			ets:insert_new(HealthTid,{VHostKey,1}),
+			ets:insert_new(HealthTid, {VHostKey, 1}),
 			1
 	end.
 
 % Increase/reset the curhost index of the specified virtual host
-% @retval: CurHostIdx
-inc_vhost_curhost(State,VHostname,Step,IdxLimit) ->
-	HealthTid=State#server_state.health_ets_id,
-	VHostKey={?VHOST_CURHOST_PREFIX,VHostname},
+-spec inc_vhost_curhost(
+	State :: server_state(),
+	VHostname :: string(),
+	Step :: integer(),
+	IdxLimit :: integer()
+) -> integer().
+inc_vhost_curhost(State, VHostname, Step, IdxLimit) ->
+	HealthTid = State#server_state.health_ets_id,
+	VHostKey = {?VHOST_CURHOST_PREFIX, VHostname},
 	case catch(ets:update_counter(HealthTid, VHostKey, {?VHOST_CURHOST_POS, Step, IdxLimit, 1})) of
 		Result when erlang:is_integer(Result) ->
 			% update curhost index successfully
 			Result;
 		_ ->
 			% update curhost index failed, try to insert a new curhost record
-			ets:insert_new(HealthTid,{VHostKey,1}),
+			ets:insert_new(HealthTid, {VHostKey, 1}),
 			1
 	end.
 
 % Delete the curhost index record of the specified virtual host
-% @retval: true
-del_vhost_curhost(State,VHostname) ->
-	HealthTid=State#server_state.health_ets_id,
-	VHostKey={?VHOST_CURHOST_PREFIX,VHostname},
-	ets:delete(HealthTid,VHostKey).
+-spec del_vhost_curhost(State::server_state(), VHostname::string()) -> true.
+del_vhost_curhost(State, VHostname) ->
+	HealthTid = State#server_state.health_ets_id,
+	VHostKey = {?VHOST_CURHOST_PREFIX, VHostname},
+	ets:delete(HealthTid, VHostKey).
 
 % ------ 内部实现函数 -------
 
 % 检查虚拟主机健康状态并更新ETS表
-check_and_update_vhost_stat(State,VHostname,VHostConf) ->
-	Hostnames=VHostConf#vhost_conf.hostnames,
-	CheckTimeout=VHostConf#vhost_conf.check_timeout,
+-spec check_and_update_vhost_stat(
+	State :: server_state(),
+	VHostname :: string(),
+	VHostConf :: vhost_conf()
+) -> 'ok'.
+check_and_update_vhost_stat(State, VHostname, VHostConf) ->
+	Hostnames = VHostConf#vhost_conf.hostnames,
+	CheckTimeout = VHostConf#vhost_conf.check_timeout,
 	% 并发检查给定虚拟主机下属所有实际主机的健康状态
-	CheckResults=zfor_util:pmap_timeout(
-			fun (Hostname) -> check_host_stat(Hostname,VHostConf) end,
+	CheckResults = zfor_util:pmap_timeout(
+			fun (Hostname) -> check_host_stat(Hostname, VHostConf) end,
 			Hostnames,
 			CheckTimeout
 		),
-	HostStats=lists:map(
+	HostStats = lists:map(
 			fun
-				({{ok,HostStat},_Hostname}) -> HostStat;
-				({{error,_Reason},Hostname}) ->
+				({{ok, HostStat}, _Hostname}) -> HostStat;
+				({{error, _Reason}, Hostname}) ->
 					#host_stat{
-						hostname=Hostname,
-						state='dead'
+						hostname = Hostname,
+						state = 'dead'
 					}
 			end,
-			lists:zip(CheckResults,Hostnames)
+			lists:zip(CheckResults, Hostnames)
 		),
 	% 根据实际主机检查结果和选择策略刷新ETS中的虚拟主机健康状态记录
-	update_vhost_stat(State,VHostname,HostStats,VHostConf).
+	update_vhost_stat(State, VHostname, HostStats, VHostConf).
 
 % 更新ETS表中的虚拟主机健康记录
-update_vhost_stat(State,VHostname,HostStats,VHostConf) ->
-	Tid=State#server_state.health_ets_id,
-	VHostKey={?VHOST_HEALTH_PREFIX,VHostname},
-	UpdateTS=erlang:localtime(),
+-spec update_vhost_stat(
+	State :: server_state(),
+	VHostname :: string(),
+	HostStats :: [host_stat()],
+	VHostConf :: vhost_conf()
+) -> 'ok'.
+update_vhost_stat(State, VHostname, HostStats, VHostConf) ->
+	Tid = State#server_state.health_ets_id,
+	VHostKey = {?VHOST_HEALTH_PREFIX, VHostname},
+	UpdateTS = erlang:localtime(),
 	% 根据虚拟主机域名和其下实际主机的健康检查结果构造虚拟主机健康状态记录
-	VHostState=make_vhost_stat(VHostname,HostStats,VHostConf),
+	VHostState = make_vhost_stat(VHostname, HostStats, VHostConf),
 	% 将虚拟主机健康检查结果插入ETS表
-	ets:insert(Tid,{VHostKey,UpdateTS,VHostState}),
+	ets:insert(Tid, {VHostKey, UpdateTS, VHostState}),
 	ok.
 
 % 根据虚拟主机域名和实际主机的健康检查结果构造虚拟主机健康状态记录
-make_vhost_stat(VHostname,HostStats,VHostConf) ->
+-spec make_vhost_stat(
+	VHostname :: string(),
+	HostStats :: [host_stat()],
+	VHostConf :: vhost_conf()
+) -> vhost_stat().
+make_vhost_stat(VHostname, HostStats, VHostConf) ->
 	case VHostConf#vhost_conf.failure_response of
 		'all' ->
 			% 虚拟主机解析失败时返回其下所有主机地址。
 			% 此时主机顺序很重要，因此结果列表需要反转一次以恢复同主机域名的对应关系
-			AllHostIPs=lists:reverse(
+			AllHostIPs = lists:reverse(
 				lists:foldl(
 					fun
-						(#host_stat{ip=undefined},IPs) -> IPs;
-						(#host_stat{ip=IP},IPs) -> [IP|IPs]
+						(#host_stat{ip = undefined}, IPs) -> IPs;
+						(#host_stat{ip = IP}, IPs) -> [IP | IPs]
 					end,
 					[],
 					HostStats
 				)
 			),
-			DeadVHost=#vhost_stat{state='dead',host_stats=HostStats,ips=AllHostIPs};
+			DeadVHost = #vhost_stat{state = 'dead', host_stats = HostStats, ips = AllHostIPs};
 		'none' ->
 			% 虚拟主机解析失败时不返回主机地址。
-			DeadVHost=#vhost_stat{state='dead',host_stats=HostStats,ips=[]}
+			DeadVHost = #vhost_stat{state = 'dead', host_stats = HostStats, ips = []}
 	end,
-	AliveVHost=#vhost_stat{state='alive',host_stats=HostStats},
+	AliveVHost = #vhost_stat{state = 'alive', host_stats = HostStats},
 	% 根据虚拟主机配置的主机选择策略分别进行处理
 	case VHostConf#vhost_conf.select_method of
 		'fallback' ->
@@ -328,7 +348,8 @@ make_vhost_stat(VHostname,HostStats,VHostConf) ->
 	end.
 
 % 检查实际主机健康状态并返回host_stat记录
-check_host_stat(Hostname,VHostConf) ->
+-spec check_host_stat(Hostname :: string(), VHostConf :: vhost_conf()) -> host_stat().
+check_host_stat(Hostname, VHostConf) ->
 	DeadState=#host_stat{hostname=Hostname,state='dead'},
 	% 1. 解析主机域名为IPv4地址
 	case inet:getaddr(Hostname,inet) of

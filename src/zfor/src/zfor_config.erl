@@ -5,19 +5,16 @@
 -compile([debug_info, bin_opt_info]).
 
 % 检查本地和远程配置文件是否发生变动，若有变化则重新载入所有本地和远程配置文件
-% 返回值：{true / false, record(server_state)}
 -spec reload_conf(State::server_state()) -> {boolean(), server_state()}.
 reload_conf(State) ->
 	scan_and_reload_conf(State).
 
 % 设置新的本地配置文件目录
-% 返回值：record(server_state)
 -spec set_conf_path(State::server_state(), ConfPath::string()) -> server_state().
 set_conf_path(State, ConfPath) ->
 	State#server_state{conf_path = ConfPath}.
 
 % 获取全局配置记录
-% 返回值：record(global_conf)
 -spec get_global_conf(State::server_state()) -> global_conf().
 get_global_conf(State) ->
 	Tid = State#server_state.conf_ets_id,
@@ -27,8 +24,7 @@ get_global_conf(State) ->
 	end.
 
 % 获取给定的虚拟主机配置记录
-% 返回值：{ok, datetime(), record(vhost_conf)} / undefined
--spec get_vhost_conf(State::server_state(), VHostname::string()) -> {ok, datetime(), vhost_conf()} | undefined.
+-spec get_vhost_conf(State::server_state(), VHostname::string()) -> {'ok', datetime(), vhost_conf()} | 'undefined'.
 get_vhost_conf(State, VHostname) ->
 	Tid = State#server_state.conf_ets_id,
 	VHostKey = {?VHOST_CONFIG_PREFIX, VHostname},
@@ -38,8 +34,7 @@ get_vhost_conf(State, VHostname) ->
 	end.
 
 % 获取所有虚拟主机配置记录
-% 返回值：{ok, [{VHostConfKey, datetime(), record(vhost_conf)}]} / undefined
--spec get_all_vhost_conf(State::server_state()) -> {ok, [vhost_conf_obj()]} | undefined.
+-spec get_all_vhost_conf(State::server_state()) -> {'ok', [vhost_conf_obj()]} | 'undefined'.
 get_all_vhost_conf(State) ->
 	Tid = State#server_state.conf_ets_id,
 	case ets:match_object(Tid, {{?VHOST_CONFIG_PREFIX, '_'}, '_', '_'}) of
@@ -211,9 +206,9 @@ reload_all_conf(State) ->
 	% 采取将所有配置数据读取合并到临时结构中，再用该结构更新ETS表的策略，以避免在更新数据的过程中
 	% 让其他模块读取到前后不一致的配置数据
 	% 载入本地配置文件并将其内容合并到内部状态里，另外还会刷新inode校验和。
-	State2 = read_local_conf(State1),
+	State2 = temp_read_local_conf(State1),
 	% 载入远程配置文件并将其内容合并到内部状态里
-	read_remote_conf(State2).
+	temp_read_remote_conf(State2).
 
 % 重新载入系统DNS配置文件内容
 -spec reload_resolv_info(State::server_state()) -> server_state().
@@ -244,10 +239,10 @@ reload_resolv_info(Path, Ctx) ->
 	end.
 
 % 更新inet模块的nameserver记录
--spec update_ns(Content::list()) -> ok.
+-spec update_ns(Content::list(tuple())) -> 'ok'.
 update_ns([]) -> ok;
 update_ns(Content) ->
-	case lists:keytake(nameserver, 1, Content) of
+	case lists:keytake('nameserver', 1, Content) of
 		{'value', {'nameserver', IP}, Remains} ->
 			inet_db:add_ns(IP),
 			update_ns(Remains);
@@ -255,24 +250,24 @@ update_ns(Content) ->
 	end.
 
 % 读入本地配置文件内容并合并到内部状态里
--spec read_local_conf(State::server_state()) -> server_state().
-read_local_conf(State) ->
+-spec temp_read_local_conf(State::server_state()) -> server_state().
+temp_read_local_conf(State) ->
 	LocalConfPath = State#server_state.conf_path,
-	read_local_conf(LocalConfPath, State).
+	temp_read_local_conf(LocalConfPath, State).
 
 % 读入给定本地配置目录中的内容，并对应更新内部状态
--spec read_local_conf(ConfPath::string(), State::server_state()) -> server_state().
-read_local_conf(ConfPath, State) ->
+-spec temp_read_local_conf(ConfPath::string(), State::server_state()) -> server_state().
+temp_read_local_conf(ConfPath, State) ->
 	Ctx = crypto:md5_init(),
 	% 遍历给定的本地配置文件目录，读取解析配置文件内容并将数据合并到内部状态里，此外还会
 	% 计算每个文件/目录的inode校验和
-	{NewState, NewCtx} = read_local_conf(ConfPath, Ctx, State),
+	{NewState, NewCtx} = temp_read_local_conf(ConfPath, Ctx, State),
 	Checksum = crypto:md5_final(NewCtx),
 	% 更新内部状态中的配置目录inode校验和
 	NewState#server_state{conf_last_checksum = Checksum}.
 
--spec read_local_conf(ConfPath::string(), Ctx::binary(), State::server_state()) -> {server_state(), binary()}.
-read_local_conf(ConfPath, Ctx, State) ->
+-spec temp_read_local_conf(ConfPath::string(), Ctx::binary(), State::server_state()) -> {server_state(), binary()}.
+temp_read_local_conf(ConfPath, Ctx, State) ->
 	case file:read_file_info(ConfPath) of
 		{ok, #file_info{type = Type, inode = Inode}} ->
 			NewCtx = crypto:md5_update(Ctx, term_to_binary(Inode)), 	% 用入口的inode更新校验和
@@ -303,7 +298,7 @@ read_local_conf(ConfPath, Ctx, State) ->
 							lists:foldl(
 								fun
 									(Path, {OldState, InCtx}) ->
-										read_local_conf(Path, InCtx, OldState)
+										temp_read_local_conf(Path, InCtx, OldState)
 								end,
 								{State, NewCtx},
 								lists:map(
@@ -324,21 +319,21 @@ read_local_conf(ConfPath, Ctx, State) ->
 	end.
 
 % 读入可能的远程配置文件内容并合并到内部状态里
--spec read_remote_conf(State::server_state()) -> server_state().
-read_remote_conf(State) ->
+-spec temp_read_remote_conf(State::server_state()) -> server_state().
+temp_read_remote_conf(State) ->
 	TempDict = State#server_state.conf_temp_dict, 	% 获取内部状态中的临时配置数据结构
 	case dict:find(?GLOBAL_CONFIG_KEY, TempDict) of
 		{ok, Val} -> 	% 找到了全局配置参数
 			% 获取远程配置文件URL列表
 			RemoteUrls = Val#global_conf.config_url,
-			read_remote_conf(RemoteUrls, State);
+			temp_read_remote_conf(RemoteUrls, State);
 		error -> 	% 没有显式配置全局参数，维持原有内部状态不变
 			State
 	end.
 
 % 载入给定URL对应的远程配置文件(HTTP方式)，读取解析其内容并将数据合并到内部状态里
--spec read_remote_conf(Urls::[string()], State::server_state()) -> server_state().
-read_remote_conf(Urls, State) ->
+-spec temp_read_remote_conf(Urls::[string()], State::server_state()) -> server_state().
+temp_read_remote_conf(Urls, State) ->
 	% 并发获取每个远程配置文件的内容
 	Results = zfor_util:pmap_timeout(
 			fun (Url) ->
@@ -393,8 +388,8 @@ parse_and_merge([Term | Remains], OldDict, CurDict) ->
 merge_kvs(ConfTerms, Dict) -> merge_kvs(ConfTerms, Dict, Dict).
 
 % 解析处理全局配置项
--spec merge_kvs({global, Options::[tuple()]}, dict(), dict()) -> dict()
-	; ({vhost, VHostName::string(), Options::[tuple()]}, dict(), dict()) -> dict().
+-spec merge_kvs({'global', Options::[tuple()]}, dict(), dict()) -> dict()
+	; ({'vhost', VHostName::string(), Options::[tuple()]}, dict(), dict()) -> dict().
 merge_kvs({'global', []}, _, CurDict) -> CurDict;
 merge_kvs({'global', [H | T]}, OldDict, CurDict) ->
 	% 获取当前临时字典里的全局配置记录，若不存在则构造一个默认记录
@@ -514,7 +509,7 @@ merge_kvs({'vhost', VHostName, [H | T]}, OldDict, CurDict) ->
 	end.
 
 % 将内部状态中的临时配置数据结构提交到ETS表中，并更新内部状态中的配置数据更新时戳
--spec temp_replace_ets(#server_state{}) -> #server_state{}.
+-spec temp_replace_ets(server_state()) -> server_state().
 temp_replace_ets(State) ->
 	Now = erlang:localtime(),
 	Tid = State#server_state.conf_ets_id,
@@ -537,7 +532,7 @@ temp_replace_ets(State) ->
 	}.
 
 % 遍历ETS配置数据表，删除所有更新时戳早于给定时戳的记录
--spec remove_stale_records(term(), datetime()) -> ok.
+-spec remove_stale_records(atom(), datetime()) -> ok.
 remove_stale_records(Tid, TS) ->
 	% 锁定ETS表状态，以维持遍历时的记录数据一致性
 	ets:safe_fixtable(Tid, true),
@@ -546,7 +541,7 @@ remove_stale_records(Tid, TS) ->
 	ets:safe_fixtable(Tid, false),
 	ok.
 
--spec remove_stale_records(term(), datetime(), term()) -> ok.
+-spec remove_stale_records(atom(), datetime(), term()) -> 'ok'.
 remove_stale_records(_Tid, _TS, '$end_of_table') -> ok;	% ETS表遍历完毕
 remove_stale_records(Tid, TS, Key) ->
 	case ets:lookup(Tid, Key) of

@@ -4,12 +4,13 @@
 -behaviour(supervisor).
 -export([start_link/1, init/1]).
 -compile([debug_info, bin_opt_info]).
-%-compile([debug_info,export_all]).
 
-start_link(ConfPath)->
-	supervisor:start_link({local,?ZFOR_SUPERVISOR_SRVNAME},?MODULE,ConfPath).
+-spec start_link(ConfPath::string()) -> {'ok', pid()} | 'ignore' | {'error', term()}.
+start_link(ConfPath) ->
+	supervisor:start_link({'local', ?ZFOR_SUPERVISOR_SRVNAME}, ?MODULE, ConfPath).
 
-init(ConfPath)->
+-spec init(ConfPath::string()) -> {'ok', {{atom(), integer(), integer()}, [child_spec()]}} | 'ignore'.
+init(ConfPath) ->
 	{ok,{
 			% 重启策略为one_for_one，即哪个服务死掉就重启对应的服务
 			{one_for_one,?MAX_RESTART_TIMES,?RESTART_STATS_TIMESPAN},
@@ -19,6 +20,7 @@ init(ConfPath)->
 		}
 	}.
 
+-spec zfor_main_childspec(ConfPath::string()) -> child_spec().
 zfor_main_childspec(ConfPath)->
 	{
 		zfor_main, 					% Child ID: term()

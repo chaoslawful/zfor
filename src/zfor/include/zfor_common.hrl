@@ -126,6 +126,17 @@
 	}
 ).
 -type vhost_stat()::#vhost_stat{}.
+-type vhost_stat_key()::{atom(), string()}.
+-type vhost_stat_obj()::{vhost_stat_key(), datetime(), vhost_stat()}.
+
+-type child_spec()::{
+	Id::term(),
+	StartFunc::{M::atom(), F::atom(), A::[term()]},
+	Restart::('permanent' | 'transient' | 'temporary'),
+	Shutdown::('brutal_kill' | non_neg_integer() | 'infinity'),
+	Type::('worker' | 'supervisor'),
+	Modules::([Module::atom()] | 'dynamic')
+}.
 
 % vim:ft=erlang ts=4 sw=4
 

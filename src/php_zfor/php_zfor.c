@@ -60,6 +60,40 @@ PHP_MINFO_FUNCTION(zfor)
 	php_info_print_table_end();
 }
 
+PHP_FUNCTION(zfor_set_udp_port)
+{
+	int argc=ZEND_NUM_ARGS();
+	long port, old_port;
+	if(zend_parse_parameters(argc TSRMLS_CC,"l",&port)==FAILURE) {
+		return;
+	}
+
+	if(port <= 0 || port > 65535) {
+		RETURN_FALSE;
+	}
+
+	old_port = zfor_set_udp_port(port);
+
+	RETURN_LONG(old_port);
+}
+
+PHP_FUNCTION(zfor_set_udp_timeout)
+{
+	int argc=ZEND_NUM_ARGS();
+	long timeout, old_timeout;
+	if(zend_parse_parameters(argc TSRMLS_CC,"l",&timeout)==FAILURE) {
+		return;
+	}
+
+	if(timeout < 0) {
+		RETURN_FALSE;
+	}
+
+	old_timeout = zfor_set_udp_timeout(timeout);
+
+	RETURN_LONG(old_timeout);
+}
+
 PHP_FUNCTION(zfor_gethostbyname)
 {
 	int argc=ZEND_NUM_ARGS();
