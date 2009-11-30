@@ -10,7 +10,7 @@ DIALYZER_OPT = -c --src \
 
 ERL_COMPILE_FLAGS += \
 	-DDEBUG \
-	+warn_unused_vars +nowarn_shadow_vars +warn_unused_import \
+	+warn_unused_vars +warn_shadow_vars +warn_unused_import \
 	+debug_info
 
 SOURCES = \
