@@ -191,10 +191,10 @@ make_vhost_stat(VHostname, HostStats, VHostConf) ->
 	case VHostConf#vhost_conf.select_method of
 		'fallback' ->
 			% 选择首个活动主机
-			case lists:keysearch('alive',#host_stat.state,HostStats) of
-				{value, #host_stat{ip=IP}}->
+			case lists:keysearch('alive', #host_stat.state, HostStats) of
+				{value, #host_stat{ip = IP}} ->
 					% 找到了活动主机，虚拟主机地址就是该主机地址
-					AliveVHost#vhost_stat{ips=[IP]};
+					AliveVHost#vhost_stat{ips = [IP]};
 				false ->
 					% 未找到活动主机，虚拟主机域名不可用
 					DeadVHost
@@ -204,7 +204,7 @@ make_vhost_stat(VHostname, HostStats, VHostConf) ->
 			% 先找出所有活动主机
 			ActiveHosts=lists:filter(
 					fun
-						(#host_stat{state='alive'}) -> true;
+						(#host_stat{state = 'alive'}) -> true;
 						(_) -> false
 					end,
 					HostStats
@@ -212,7 +212,7 @@ make_vhost_stat(VHostname, HostStats, VHostConf) ->
 			case ActiveHosts of
 				[H] ->
 					% 活动主机列表只有1个元素，虚拟主机地址就是这唯一活动主机的地址
-					AliveVHost#vhost_stat{ips=[H#host_stat.ip]};
+					AliveVHost#vhost_stat{ips = [H#host_stat.ip]};
 				_ ->
 					% 没有活动主机，或活动主机多于1个，虚拟主机域名不可用
 					DeadVHost
@@ -222,7 +222,7 @@ make_vhost_stat(VHostname, HostStats, VHostConf) ->
 			% 找出所有活动主机的IPv4地址(这里主机先后顺序不重要，因此不需要反转结果列表)
 			ActiveIPs=lists:foldl(
 					fun
-						(#host_stat{state='alive',ip=IP}, IPs) -> [IP|IPs];
+						(#host_stat{state = 'alive', ip = IP}, IPs) -> [IP | IPs];
 						(_, IPs) -> IPs
 					end,
 					[],
@@ -234,19 +234,18 @@ make_vhost_stat(VHostname, HostStats, VHostConf) ->
 					DeadVHost;
 				_ ->
 					% 有活动主机，虚拟主机地址列表就是所有活动主机的地址列表
-					AliveVHost#vhost_stat{ips=ActiveIPs}
+					AliveVHost#vhost_stat{ips = ActiveIPs}
 			end;
 		'min_rt' ->
 			% 选择RT最小的活动主机
 			% 寻找虚拟主机下属的所有实际主机中处于活动状态且RT时间最小的主机
-			{_,MinRTIP}=lists:foldl(
+			{_, MinRTIP}=lists:foldl(
 					fun
-						(#host_stat{state='alive',ip=IP,rt=RT}, {GRT,_})
-							when RT<GRT
-							-> {RT,IP};
-						(_, {GRT,GIP}) -> {GRT,GIP}
+						(#host_stat{state = 'alive', ip = IP, rt = RT}, {GRT, _})
+							when RT < GRT -> {RT, IP};
+						(_, {GRT, GIP}) -> {GRT, GIP}
 					end,
-					{99999999,undefined},
+					{99999999, undefined},
 					HostStats
 				),
 			case MinRTIP of
@@ -255,7 +254,7 @@ make_vhost_stat(VHostname, HostStats, VHostConf) ->
 					DeadVHost;
 				_ ->
 					% 找到了RT最小的活动主机，虚拟主机地址就是该主机地址
-					AliveVHost#vhost_stat{ips=[MinRTIP]}
+					AliveVHost#vhost_stat{ips = [MinRTIP]}
 			end;
 		'round_robin' ->
 			% Pickup an active host based on round-robin strategy
@@ -264,7 +263,7 @@ make_vhost_stat(VHostname, HostStats, VHostConf) ->
 			% all active hosts.
 			ActiveIPs=lists:foldl(
 					fun
-						(#host_stat{state='alive',ip=IP}, IPs) -> [IP|IPs];
+						(#host_stat{state = 'alive', ip = IP}, IPs) -> [IP | IPs];
 						(_, IPs) -> IPs
 					end,
 					[],
@@ -276,98 +275,98 @@ make_vhost_stat(VHostname, HostStats, VHostConf) ->
 					DeadVHost;
 				_ ->
 					% 有活动主机，虚拟主机地址列表就是所有活动主机的地址列表
-					AliveVHost#vhost_stat{ips=ActiveIPs}
+					AliveVHost#vhost_stat{ips = ActiveIPs}
 			end;
 		'grp_rand' ->
 			% 在RT差异小于预设门限的活动主机中随机挑选一个
-			GrpThres=VHostConf#vhost_conf.group_threshold,
+			GrpThres = VHostConf#vhost_conf.group_threshold,
 			% 获取所有活动主机
-			ActiveHosts=lists:filter(
+			ActiveHosts = lists:filter(
 					fun
-						(#host_stat{state='alive'}) -> true;
+						(#host_stat{state = 'alive'}) -> true;
 						(_) -> false
 					end,
 					HostStats
 				),
 			% 将活动主机按照RT升序排列
-			SrtActiveHosts=lists:keysort(#host_stat.rt,ActiveHosts),
+			SrtActiveHosts = lists:keysort(#host_stat.rt, ActiveHosts),
 			case SrtActiveHosts of
-				[H|T] ->
+				[H | T] ->
 					% 有活动主机，根据RT成组门限时间选择活动主机
-					GrpActiveHosts=[H|lists:takewhile(
+					GrpActiveHosts = [H | lists:takewhile(
 							fun
-								(#host_stat{rt=RT})
-									when RT-H#host_stat.rt=<GrpThres -> true;
+								(#host_stat{rt = RT})
+									when RT - H#host_stat.rt =< GrpThres -> true;
 								(_) -> false
 							end,
 							T
 						)],
 					% 随机选择一个组内的活动主机
-					RandGrpHost=lists:nth(random:uniform(erlang:length(GrpActiveHosts)),GrpActiveHosts),
+					RandGrpHost = lists:nth(random:uniform(erlang:length(GrpActiveHosts)), GrpActiveHosts),
 					% 虚拟主机地址就是该主机地址
-					AliveVHost#vhost_stat{ips=[RandGrpHost#host_stat.ip]};
+					AliveVHost#vhost_stat{ips = [RandGrpHost#host_stat.ip]};
 				_ ->
 					% 没有活动主机，虚拟主机域名不可用
 					DeadVHost
 			end;
 		'grp_all' ->
 			% 选择所有RT差异小于预设门限的活动主机
-			GrpThres=VHostConf#vhost_conf.group_threshold,
+			GrpThres = VHostConf#vhost_conf.group_threshold,
 			% 获取所有活动主机
-			ActiveHosts=lists:filter(
+			ActiveHosts = lists:filter(
 					fun
-						(#host_stat{state='alive'}) -> true;
+						(#host_stat{state = 'alive'}) -> true;
 						(_) -> false
 					end,
 					HostStats
 				),
 			% 将活动主机按照RT升序排列
-			SrtActiveHosts=lists:keysort(#host_stat.rt,ActiveHosts),
+			SrtActiveHosts = lists:keysort(#host_stat.rt, ActiveHosts),
 			case SrtActiveHosts of
-				[H|T] ->
+				[H | T] ->
 					% 有活动主机，根据RT成组门限时间选择活动主机
-					GrpActiveHosts=[H|lists:takewhile(
+					GrpActiveHosts = [H | lists:takewhile(
 							fun
-								(#host_stat{rt=RT})
-									when RT-H#host_stat.rt=<GrpThres -> true;
+								(#host_stat{rt = RT})
+									when RT - H#host_stat.rt =< GrpThres -> true;
 								(_) -> false
 							end,
 							T
 						)],
-					GrpActiveHostIPs=lists:map(fun (#host_stat{ip=IP}) -> IP end, GrpActiveHosts),
+					GrpActiveHostIPs = lists:map(fun (#host_stat{ip = IP}) -> IP end, GrpActiveHosts),
 					% 虚拟主机地址就是组内所有活动主机地址
-					AliveVHost#vhost_stat{ips=GrpActiveHostIPs};
+					AliveVHost#vhost_stat{ips = GrpActiveHostIPs};
 				_ ->
 					% 没有活动主机，虚拟主机域名不可用
 					DeadVHost
 			end;
 		Other ->
 			% 未知主机选择方案，认为虚拟主机域名不可用
-			?WARN_LOG("Unrecognizable host selection method '~p' for vhost ~p~n",[Other,VHostname]),
+			?WARN_LOG("Unrecognizable host selection method '~p' for vhost ~p~n", [Other, VHostname]),
 			DeadVHost
 	end.
 
 % 检查实际主机健康状态并返回host_stat记录
 -spec check_host_stat(Hostname :: string(), VHostConf :: vhost_conf()) -> host_stat().
 check_host_stat(Hostname, VHostConf) ->
-	DeadState=#host_stat{hostname=Hostname,state='dead'},
+	DeadState = #host_stat{hostname = Hostname, state = 'dead'},
 	% 1. 解析主机域名为IPv4地址
 	case inet:getaddr(Hostname,inet) of
 		{ok, IP} ->
 			% 2. 根据主机健康检查方式选择不同的途径
-			CheckPort=VHostConf#vhost_conf.check_port,
-			AliveState=#host_stat{hostname=Hostname,state='alive',ip=IP},
-			Ts=now(),
+			CheckPort = VHostConf#vhost_conf.check_port,
+			AliveState = #host_stat{hostname = Hostname, state = 'alive', ip = IP},
+			Ts = now(),
 			case VHostConf#vhost_conf.check_type of
 				'http' ->
 					% 2a. HTTP健康检查方式
-					Path=VHostConf#vhost_conf.http_path,
-					URL=lists:flatten(["http://",inet_parse:ntoa(IP),":",integer_to_list(CheckPort),Path]),
-					Method=VHostConf#vhost_conf.http_method,
-					TmpHeaders=[{"User-Agent",?REMOTE_HTTP_USERAGENT}],
-					HostHeader=VHostConf#vhost_conf.http_host,
+					Path = VHostConf#vhost_conf.http_path,
+					URL = lists:flatten(["http://", inet_parse:ntoa(IP), ":", integer_to_list(CheckPort), Path]),
+					Method = VHostConf#vhost_conf.http_method,
+					TmpHeaders = [{"User-Agent", ?REMOTE_HTTP_USERAGENT}],
+					HostHeader = VHostConf#vhost_conf.http_host,
 					Headers = if
-						HostHeader =/= undefined -> [{"Host", HostHeader}|TmpHeaders];
+						HostHeader =/= undefined -> [{"Host", HostHeader} | TmpHeaders];
 						true -> TmpHeaders
 					end,
 					Version = if
@@ -378,71 +377,72 @@ check_host_stat(Hostname, VHostConf) ->
 					case http:request(
 							Method,
 							{URL, Headers},
-							[{relaxed,true},{version, Version}],
+							[{relaxed, true}, {version, Version}],
 							[]
 						) of
-						{ok,{{_,Status,_},_,_}} ->
+						{ok, {{_, Status, _}, _, _}} ->
 							case Status of
 								200 ->
 									% 获取信息成功，计算耗时并返回成功记录
-									Te=now(),
-									Tdiff=erlang:trunc(timer:now_diff(Te,Ts)/1000.0),
-									AliveState#host_stat{rt=Tdiff};
+									Te = now(),
+									Tdiff = erlang:trunc(timer:now_diff(Te, Ts) / 1000.0),
+									AliveState#host_stat{rt = Tdiff};
 								_ ->
 									% 返回状态码无效
-									?WARN_LOG("Abnormal response status code ~p for URL ~p~n",[Status,URL]),
-									DeadState#host_stat{ip=IP}
+									?WARN_LOG("Abnormal response status code ~p for URL ~p~n", [Status, URL]),
+									DeadState#host_stat{ip = IP}
 							end;
 						_ ->
 							% 获取远程状态文件信息失败
-							?WARN_LOG("Failed to http ~p file: URL is ~p~n",[Method, URL]),
-							DeadState#host_stat{ip=IP}
+							?WARN_LOG("Failed to http ~p file: URL is ~p~n", [Method, URL]),
+							DeadState#host_stat{ip = IP}
 					end;
 				'tcp' ->
 					% 2b. TCP健康检查方式
-					case gen_tcp:connect(IP,CheckPort,[binary,{packet,0},{active,false}]) of
+					case gen_tcp:connect(IP, CheckPort, [binary, {packet, 0}, {active, false}]) of
 						{ok, Sock} ->
 							% 成功建立TCP/IP连接
-							ExpectResp=VHostConf#vhost_conf.expect_response,
+							ExpectResp = VHostConf#vhost_conf.expect_response,
 							case ExpectResp of
 								undefined ->
 									% 未定义期望的初始握手包，认为健康检查通过
-									Te=now(),
-									Tdiff=erlang:trunc(timer:now_diff(Te,Ts)/1000.0),
-									Ret=AliveState#host_stat{rt=Tdiff};
+									Te = now(),
+									Tdiff = erlang:trunc(timer:now_diff(Te, Ts) / 1000.0),
+									Ret = AliveState#host_stat{rt = Tdiff};
 								_ ->
 									% 定义了期望的初始握手包，尝试读取握手包数据并校验
-									Size=erlang:size(ExpectResp),
-									case gen_tcp:recv(Sock,0) of
-										{ok, <<ExpectResp:Size/binary,_/binary>>} ->
+									Size = erlang:size(ExpectResp),
+									case gen_tcp:recv(Sock, 0) of
+										{ok, <<ExpectResp:Size/binary, _/binary>>} ->
 											% 校验成功
-											Te=now(),
-											Tdiff=erlang:trunc(timer:now_diff(Te,Ts)/1000.0),
-											Ret=AliveState#host_stat{rt=Tdiff};
+											Te = now(),
+											Tdiff = erlang:trunc(timer:now_diff(Te, Ts) / 1000.0),
+											Ret = AliveState#host_stat{rt = Tdiff};
 										{ok, Other} ->
 											% 校验失败
-											?WARN_LOG("Unexpected handshake packet received from ~p: ~p~n",[Hostname,Other]),
-											Ret=DeadState#host_stat{ip=IP};
+											?WARN_LOG("Unexpected handshake packet received from ~p: ~p~n",
+												[Hostname, Other]),
+											Ret = DeadState#host_stat{ip = IP};
 										_ ->
 											% 读取初始握手包失败
-											?WARN_LOG("Failed to read handshake packet from ~p~n",[Hostname]),
-											Ret=DeadState#host_stat{ip=IP}
+											?WARN_LOG("Failed to read handshake packet from ~p~n", [Hostname]),
+											Ret = DeadState#host_stat{ip = IP}
 									end
 							end,
 							gen_tcp:close(Sock),
 							Ret;
 						_ ->
 							% 无法建立TCP/IP连接
-							?WARN_LOG("Failed to connect to ~p~n",[Hostname]),
-							DeadState#host_stat{ip=IP}
+							?WARN_LOG("Failed to connect to ~p~n", [Hostname]),
+							DeadState#host_stat{ip = IP}
 					end;
 				Other ->
 					% 2c. 目前不支持的其他健康检查方式
-					?WARN_LOG("Unknown host check type: ~p~n",[Other]),
-					DeadState#host_stat{ip=IP}
+					?WARN_LOG("Unknown host check type: ~p~n", [Other]),
+					DeadState#host_stat{ip = IP}
 			end;
 		_ ->
-			?WARN_LOG("Unable to resolve hostname ~p~n",[Hostname]),
+			?WARN_LOG("Unable to resolve hostname ~p~n", [Hostname]),
 			DeadState
 	end.
 

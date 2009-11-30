@@ -16,6 +16,8 @@
 #include "zfor.h"
 
 static function_entry zfor_functions[]={
+	PHP_FE(zfor_set_udp_port,NULL)
+	PHP_FE(zfor_set_udp_timeout,NULL)
 	PHP_FE(zfor_gethostbyname,NULL)
 	PHP_FE(zfor_gethostbynamel,NULL)
 	{NULL,NULL,NULL}
