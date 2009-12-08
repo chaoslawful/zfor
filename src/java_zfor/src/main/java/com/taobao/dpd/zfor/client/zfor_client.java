@@ -114,7 +114,7 @@ public class zfor_client {
 
 		if (port < 0 || port > 65535) {
 			// 无效的port使用默认值
-			return;
+			throw new RuntimeException("port值非法"+port);
 		}
 
 		port = p;
@@ -129,7 +129,7 @@ public class zfor_client {
 
 		if (timeout < 0) {
 			// 无效的timeout
-			return;
+			throw new RuntimeException("timeout值无效"+t);
 		} else {
 			timeout = t;
 		}
