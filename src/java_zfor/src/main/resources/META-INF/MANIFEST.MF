@@ -1,7 +1,0 @@
-Manifest-Version: 1.0
-main-class:com.taobao.dpd.zfor.client.zfor_test
-Archiver-Version: Plexus Archiver
-Created-By: Apache Maven
-Built-By: yu
-Build-Jdk: 1.6.0_15
-
