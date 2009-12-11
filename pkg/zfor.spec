@@ -6,7 +6,7 @@
 #	/var/log/zfor/*		- zfor run-time log files
 summary: ZFOR is a fail-over name resolver.
 name: zfor
-version: 1.0.2
+version: 1.0.3
 release: 1
 url: http://code.google.com/p/zfor/
 vendor: Taobao <http://www.taobao.com>
@@ -33,6 +33,11 @@ summary: ZFOR PHP extension
 group: Applications/System
 requires: zfor-client = %{version}-%{release}, php >= 5.2.9
 
+%package -n erlang-zfor-client
+summary: ZFOR Erlang client
+group: Applications/System
+requires: erlang >= R11B
+
 %description
 ZFOR is a virtual hostname resolver that supports health checking and
 load-balancing. It could be used to take over some VIP works.
@@ -43,6 +48,9 @@ applications with ZFOR.
 
 %description -n php-zfor-client
 This package contains the PHP extension for ZFOR.
+
+%description -n erlang-zfor-client
+This package contains Erlang client module for ZFOR.
 
 %prep
 %setup -q -n zfor
@@ -60,10 +68,11 @@ mkdir -p %{buildroot}%{_prefix}/share/zfor/{ebin,src,include}
 mkdir -p %{buildroot}%{_prefix}/etc/zfor
 mkdir -p %{buildroot}/etc/zfor
 mkdir -p %{buildroot}/var/log/zfor
-mkdir -p %{buildroot}%{_prefix}/lib64
+mkdir -p %{buildroot}%{_prefix}/%{_lib}
 mkdir -p %{buildroot}%{_prefix}/include
 mkdir -p %{buildroot}%{ext_root}
 mkdir -p %{buildroot}%{ini_root}
+mkdir -p %{buildroot}%{_prefix}/%{_lib}/erlang/lib/zfor_client-%{version}/{ebin,src,include}
 
 # install zfor admin tools & boot file
 cp %{_builddir}/zfor/bin/* %{buildroot}%{_prefix}/bin/
@@ -82,11 +91,15 @@ cp %{_builddir}/zfor/src/zfor/src/* %{buildroot}%{_prefix}/share/zfor/src/
 cp %{_builddir}/zfor/src/zfor/include/* %{buildroot}%{_prefix}/share/zfor/include/
 # install client library and header files
 cp %{_builddir}/zfor/src/libzfor/zfor_host %{buildroot}%{_prefix}/bin/zfor-host
-cp %{_builddir}/zfor/src/libzfor/libzfor.so %{buildroot}%{_prefix}/lib64/
+cp %{_builddir}/zfor/src/libzfor/libzfor.so %{buildroot}%{_libdir}
 cp %{_builddir}/zfor/src/libzfor/zfor.h %{buildroot}%{_prefix}/include/
 # install php extension files
 cp %{_builddir}/zfor/src/php_zfor/modules/zfor.so %{buildroot}%{ext_root}/
 cp %{_builddir}/zfor/src/php_zfor/zfor.ini %{buildroot}%{ini_root}/
+# install erlang client files
+cp %{_builddir}/zfor/src/erlang_zfor/ebin/*.beam %{buildroot}%{_prefix}/%{_lib}/erlang/lib/zfor_client-%{version}/ebin/
+cp %{_builddir}/zfor/src/erlang_zfor/src/*.erl %{buildroot}%{_prefix}/%{_lib}/erlang/lib/zfor_client-%{version}/src/
+cp %{_builddir}/zfor/src/erlang_zfor/include/*.hrl %{buildroot}%{_prefix}/%{_lib}/erlang/lib/zfor_client-%{version}/include/
 
 %post
 # post-install for zfor main package
@@ -125,7 +138,7 @@ fi
 %defattr(-,root,root)
 %{_prefix}/bin/zfor-host
 %{_prefix}/include/zfor.h
-%{_prefix}/lib64/libzfor.so
+%{_prefix}/%{_lib}/libzfor.so
 
 %files -n php-zfor-client
 # files for php-zfor-client package
@@ -133,10 +146,19 @@ fi
 %{ext_root}/zfor.so
 %{ini_root}/zfor.ini
 
+%files -n erlang-zfor-client
+# files for erlang-zfor-client package
+%defattr(-,root,root)
+%{_prefix}/%{_lib}/erlang/lib/zfor_client-%{version}
+
 %clean
 rm -rf %{buildroot}
 
 %changelog
+* Fri Dec 11 2009 qingwu <qingwu@taobao.com>
++ zfor-1.0.3-1
+- added erlang client
+
 * Fri Nov 27 2009 qingwu <qingwu@taobao.com>
 + zfor-1.0.2-1
 - fixed bug: failed to resolve virtual hostname nor show zfor status when using
