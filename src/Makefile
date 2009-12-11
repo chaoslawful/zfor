@@ -6,6 +6,9 @@ all:
 ext:
 	$(MAKE) -C php_zfor
 
+erl:
+	$(MAKE) -C erlang_zfor
+
 clean:
 	for i in $(SUBDIRS) php_zfor; do $(MAKE) -C $$i clean; done
 

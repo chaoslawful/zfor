@@ -60,6 +60,8 @@ This package contains Erlang client module for ZFOR.
 make PREFIX=%{_prefix} all
 # build php extension
 make PREFIX=%{_prefix} ext
+# build erlang client
+make PREFIX=%{_prefix} erl
 
 %install
 rm -rf %{buildroot}

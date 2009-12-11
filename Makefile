@@ -7,6 +7,9 @@ all:
 ext:
 	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i ext; done
 
+erl:
+	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i erl; done
+
 pkg:
 	#	$(MAKE) PREFIX=$(PREFIX) -C pkg
 	rm -rf build; \
