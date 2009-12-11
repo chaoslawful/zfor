@@ -74,7 +74,7 @@ mkdir -p %{buildroot}%{_prefix}/%{_lib}
 mkdir -p %{buildroot}%{_prefix}/include
 mkdir -p %{buildroot}%{ext_root}
 mkdir -p %{buildroot}%{ini_root}
-mkdir -p %{buildroot}%{_prefix}/%{_lib}/erlang/lib/zfor_client-%{version}/{ebin,src,include}
+mkdir -p %{buildroot}/usr/%{_lib}/erlang/lib/zfor_client-%{version}/{ebin,src,include}
 
 # install zfor admin tools & boot file
 cp %{_builddir}/zfor/bin/* %{buildroot}%{_prefix}/bin/
@@ -99,9 +99,9 @@ cp %{_builddir}/zfor/src/libzfor/zfor.h %{buildroot}%{_prefix}/include/
 cp %{_builddir}/zfor/src/php_zfor/modules/zfor.so %{buildroot}%{ext_root}/
 cp %{_builddir}/zfor/src/php_zfor/zfor.ini %{buildroot}%{ini_root}/
 # install erlang client files
-cp %{_builddir}/zfor/src/erlang_zfor/ebin/*.beam %{buildroot}%{_prefix}/%{_lib}/erlang/lib/zfor_client-%{version}/ebin/
-cp %{_builddir}/zfor/src/erlang_zfor/src/*.erl %{buildroot}%{_prefix}/%{_lib}/erlang/lib/zfor_client-%{version}/src/
-cp %{_builddir}/zfor/src/erlang_zfor/include/*.hrl %{buildroot}%{_prefix}/%{_lib}/erlang/lib/zfor_client-%{version}/include/
+cp %{_builddir}/zfor/src/erlang_zfor/ebin/*.beam %{buildroot}/usr/%{_lib}/erlang/lib/zfor_client-%{version}/ebin/
+cp %{_builddir}/zfor/src/erlang_zfor/src/*.erl %{buildroot}/usr/%{_lib}/erlang/lib/zfor_client-%{version}/src/
+cp %{_builddir}/zfor/src/erlang_zfor/include/*.hrl %{buildroot}/usr/%{_lib}/erlang/lib/zfor_client-%{version}/include/
 
 %post
 # post-install for zfor main package
@@ -151,7 +151,7 @@ fi
 %files -n erlang-zfor-client
 # files for erlang-zfor-client package
 %defattr(-,root,root)
-%{_prefix}/%{_lib}/erlang/lib/zfor_client-%{version}
+/usr/%{_lib}/erlang/lib/zfor_client-%{version}
 
 %clean
 rm -rf %{buildroot}
