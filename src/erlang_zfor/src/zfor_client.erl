@@ -1,5 +1,6 @@
 -module(zfor_client).
 -include("zfor_client.hrl").
+-include("zfor_log.hrl").
 -vsn("%VSN%").
 -compile([debug_info, bin_opt_info]).
 -export([context/3, getaddr/2, getaddrs/2]).
