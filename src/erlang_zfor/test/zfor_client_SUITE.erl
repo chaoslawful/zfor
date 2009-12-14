@@ -20,7 +20,7 @@ all() -> [basic_test, more_test, fail_test].
 
 % 单元测试
 basic_test(_Config) ->
-	Ctx = zfor_client:context(?DEFAULT_ZFOR_SERVER, ?DEFAULT_ZFOR_PORT, ?DEFAULT_TIMEOUT),
+	Ctx = zfor_client:context(?DEFAULT_ZFOR_SERVER, ?DEFAULT_ZFOR_PORT, ?DEFAULT_ZFOR_TIMEOUT),
 	{'ok', Addr} = zfor_client:getaddr(Ctx, "127.0.0.1"),
 	io:format("Resolved address for 127.0.0.1: ~p~n", [Addr]),
 	{127, 0, 0, 1} = Addr,
@@ -30,7 +30,7 @@ basic_test(_Config) ->
 	ok.
 
 more_test(_Config) ->
-	Ctx = zfor_client:context(?DEFAULT_ZFOR_SERVER, ?DEFAULT_ZFOR_PORT, ?DEFAULT_TIMEOUT),
+	Ctx = zfor_client:context(?DEFAULT_ZFOR_SERVER, ?DEFAULT_ZFOR_PORT, ?DEFAULT_ZFOR_TIMEOUT),
 	{'ok', Addr1} = zfor_client:getaddr(Ctx, "test.zfor"),
 	io:format("Resolved address for test.zfor: ~p~n", [Addr1]),
 	{127, 0, 0, 1} = Addr1,
@@ -44,10 +44,10 @@ more_test(_Config) ->
 	ok.
 
 fail_test(_Config) ->
-	Ctx1 = zfor_client:context(?DEFAULT_ZFOR_SERVER, 9876, ?DEFAULT_TIMEOUT),
+	Ctx1 = zfor_client:context(?DEFAULT_ZFOR_SERVER, 9876, ?DEFAULT_ZFOR_TIMEOUT),
 	{'error', _} = zfor_client:getaddr(Ctx1, "test1.zfor"),
 	{'error', _} = zfor_client:getaddrs(Ctx1, "test1.zfor"),
-	Ctx2 = zfor_client:context(?DEFAULT_ZFOR_SERVER, ?DEFAULT_ZFOR_PORT, ?DEFAULT_TIMEOUT),
+	Ctx2 = zfor_client:context(?DEFAULT_ZFOR_SERVER, ?DEFAULT_ZFOR_PORT, ?DEFAULT_ZFOR_TIMEOUT),
 	{'error', _} = zfor_client:getaddr(Ctx2, "test1.zfor"),
 	{'error', _} = zfor_client:getaddrs(Ctx2, "test1.zfor"),
 	ok.

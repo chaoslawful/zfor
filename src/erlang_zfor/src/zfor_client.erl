@@ -121,7 +121,7 @@ inet_getaddrs(Hostname) ->
 
 make_zfor_request('DNS', [Hostname]) ->
 	Bin = list_to_binary(Hostname),
-	<<?REQ_DNS/integer, Bin/binary>>;
+	<<?ZFOR_REQ_DNS/integer, Bin/binary>>;
 
 make_zfor_request(_, _) ->
 	erlang:error('not_implemented').
