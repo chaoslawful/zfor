@@ -51,7 +51,7 @@ getaddrs(Ctx, Hostname) ->
 	case zfor_getaddrs(Ctx, Hostname) of
 		{'ok', Addrs = [_ | _]} -> {'ok', Addrs};
 		_ ->	% Not found in zfor server or error occured
-			?WARN("Failed to resolving hostname (~p) through zfor, fall-back to inet~n", [Hostname]),
+			?INFO("Failed to resolving hostname (~p) through zfor, fall-back to inet~n", [Hostname]),
 			case inet_getaddrs(Hostname) of
 				{'ok', Addrs} -> {'ok', Addrs};
 				{'error', Reason} -> {'error', Reason}
