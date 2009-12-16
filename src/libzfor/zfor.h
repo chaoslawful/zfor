@@ -10,24 +10,23 @@
 extern "C" {
 #endif
 
-/**
- * Replacement for gethostbyname() in system libc
- * */
-struct hostent *zfor_gethostbyname(const char *name);
+	/**
+	 * Replacement for gethostbyname() in system libc
+	 * */
+	struct hostent *zfor_gethostbyname(const char *name);
 
-/**
- * Set UDP port of zfor server
- * */
-int zfor_set_udp_port(int port);
+	/**
+	 * Set UDP port of zfor server
+	 * */
+	int zfor_set_udp_port(int port);
 
-/**
- * Set UDP request timeout of zfor server
- * */
-int zfor_set_udp_timeout(int timeout);
+	/**
+	 * Set UDP request timeout of zfor server
+	 * */
+	int zfor_set_udp_timeout(int timeout);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif
 
