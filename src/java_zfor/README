@@ -1,0 +1,4 @@
+* Compile and package:
+
+	$ mvn package
+

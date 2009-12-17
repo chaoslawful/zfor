@@ -2,9 +2,9 @@
 #define ZFOR_H__
 
 #include <sys/types.h>
-#include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#include <netdb.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,6 +14,11 @@ extern "C" {
 	 * Replacement for gethostbyname() in system libc
 	 * */
 	struct hostent *zfor_gethostbyname(const char *name);
+
+	/**
+	 * Replacement for getaddrinfo() in system libc
+	 * */
+	int zfor_getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);
 
 	/**
 	 * Set UDP port of zfor server

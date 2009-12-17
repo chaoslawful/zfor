@@ -1,3 +1,6 @@
+2009-12-18 Wang Xiaozhe <chaoslawful@gmail.com>
+	* added getaddrinfo() interception
+
 2009-9-18 Wang Xiaozhe <chaoslaful@gmail.com>
 	* added fixed and remote host list option
 	* added supporting of taobao config server
