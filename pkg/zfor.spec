@@ -140,6 +140,7 @@ fi
 # files for zfor-client package
 %defattr(-,root,root)
 %{_prefix}/bin/zfor-host
+%{_prefix}/bin/zfor-prop
 %{_prefix}/include/zfor.h
 %{_prefix}/%{_lib}/libzfor.so
 
