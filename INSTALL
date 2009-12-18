@@ -28,10 +28,10 @@
 
 * sudo -u nobody zfor-start (Start zfor server)
 * sudo -u nobody zfor-stop (Stop zfor server)
-* zfor_conf (Dump current config files read by zfor server)
-* zfor_stat (Dump current host status stored in zfor server)
-* zfor_host <hostname> (Resolve given hostname through zfor service)
-* zfor_shell (Connect to zfor server shell, press ^Gq to quit. Use with care!)
+* zfor-conf (Dump current config files read by zfor server)
+* zfor-stat (Dump current host status stored in zfor server)
+* zfor-host <hostname> (Resolve given hostname through zfor service)
+* zfor-shell (Connect to zfor server shell, press ^Gq to quit. Use with care!)
 
 
 - RELEASE STRUCTURE

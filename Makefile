@@ -14,11 +14,11 @@ pkg:
 	#	$(MAKE) PREFIX=$(PREFIX) -C pkg
 	rm -rf build; \
 	mkdir -p build/{BUILD,RPMS,SOURCES,SPECS,SRPMS}; \
-		export builddir=$(shell pwd)/build; \
-		export cwd=$(shell basename `pwd`); \
-		cd ..; \
-		tar czf /tmp/zfor.tar.gz $$cwd; \
-		rpmbuild --define="_topdir $$builddir" -tb /tmp/zfor.tar.gz
+	export builddir=$(shell pwd)/build; \
+	export cwd=$(shell basename `pwd`); \
+	cd ..; \
+	tar czf /tmp/zfor.tar.gz $$cwd; \
+	rpmbuild --define="_topdir $$builddir" -tb /tmp/zfor.tar.gz
 
 
 ext-pkg:

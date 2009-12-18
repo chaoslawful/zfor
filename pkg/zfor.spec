@@ -7,7 +7,7 @@
 summary: ZFOR is a fail-over name resolver.
 name: zfor
 version: 1.0.4
-release: 1
+release: 2
 url: http://code.google.com/p/zfor/
 vendor: Taobao <http://www.taobao.com>
 license: GPLv2
@@ -19,7 +19,7 @@ requires: erlang >= R11B
 %define _tmppath /tmp
 %define _prefix /usr/local
 %define ext_root %(php-config --extension-dir)
-%define ini_root %(php --ini|grep "Scan for additional .ini files"|perl -ane 'print $F[-1]')
+%define ini_root %(php -i|grep "Scan"|perl -ane 'print $F[-1]')
 
 buildrequires: erlang >= R11B, php-devel >= 5.2.9
 buildroot: %{_tmppath}/%{name}-%{version}-%(%{__id} -u)
@@ -159,6 +159,10 @@ fi
 rm -rf %{buildroot}
 
 %changelog
+* Sat Dec 19 2009 qingwu <qingwu@taobao.com>
++ zfor-1.0.4-2
+- modified php ini directory detection method
+
 * Fri Dec 18 2009 qingwu <qingwu@taobao.com>
 + zfor-1.0.4-1
 - added set zfor service address api
