@@ -21,7 +21,7 @@ requires: erlang >= R11B
 %define ext_root %(php-config --extension-dir)
 %define ini_root %(php -i|grep "Scan"|perl -ane 'print $F[-1]')
 
-buildrequires: erlang >= R11B, php-devel >= 5.2.9
+buildrequires: erlang >= R11B, php-devel >= 5.0.0
 buildroot: %{_tmppath}/%{name}-%{version}-%(%{__id} -u)
 
 %package -n zfor-client
@@ -31,7 +31,7 @@ group: Development/Libraries
 %package -n php-zfor-client
 summary: ZFOR PHP extension
 group: Applications/System
-requires: zfor-client = %{version}-%{release}, php >= 5.2.9
+requires: zfor-client = %{version}-%{release}, php >= 5.0.0
 
 %package -n erlang-zfor-client
 summary: ZFOR Erlang client
