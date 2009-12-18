@@ -1,4 +1,8 @@
+- USAGE
 * Compile and package:
 
 	$ mvn package
+
+- NOTES
+* java client don't support get virtual host config yet.
 

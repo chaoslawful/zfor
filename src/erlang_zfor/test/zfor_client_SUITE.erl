@@ -16,7 +16,7 @@ end_per_testcase(_TestCase, Config) ->
     Config.
 
 % 所有单元测试函数
-all() -> [basic_test, more_test, fail_test].
+all() -> [basic_test, more_test, fail_test, vconf_test].
 
 % 单元测试
 basic_test(_Config) ->
@@ -50,6 +50,23 @@ fail_test(_Config) ->
 	Ctx2 = zfor_client:context(?DEFAULT_ZFOR_SERVER, ?DEFAULT_ZFOR_PORT, ?DEFAULT_ZFOR_TIMEOUT),
 	{'error', _} = zfor_client:getaddr(Ctx2, "test1.zfor"),
 	{'error', _} = zfor_client:getaddrs(Ctx2, "test1.zfor"),
+	ok.
+
+vconf_test(_Config) ->
+	Ctx = zfor_client:context(?DEFAULT_ZFOR_SERVER, ?DEFAULT_ZFOR_PORT, ?DEFAULT_ZFOR_TIMEOUT),
+	{'ok', "[\"127.0.0.1\",\"127.0.0.2\"]"} = zfor_client:getvconf(Ctx, "test.zfor", host),
+	{'ok', "\"all_active\""} = zfor_client:getvconf(Ctx, "test.zfor", select_method),
+	{'ok', _} = zfor_client:getvconf(Ctx, "test.zfor", check_ttl),
+	{'ok', "\"http\""} = zfor_client:getvconf(Ctx, "test.zfor", check_type),
+	{'ok', "6789"} = zfor_client:getvconf(Ctx, "test.zfor", check_port),
+	{'ok', "\"/\""} = zfor_client:getvconf(Ctx, "test.zfor", http_path),
+	{'ok', "\"head\""} = zfor_client:getvconf(Ctx, "test.zfor", http_method),
+	{'ok', _} = zfor_client:getvconf(Ctx, "test.zfor", http_host),
+	{'ok', _} = zfor_client:getvconf(Ctx, "test.zfor", check_timeout),
+	{'ok', _} = zfor_client:getvconf(Ctx, "test.zfor", expect_response),
+	{'ok', "\"all\""} = zfor_client:getvconf(Ctx, "test.zfor", failure_response),
+	{'ok', _} = zfor_client:getvconf(Ctx, "test.zfor", group_threshold),
+	{'error', _} = zfor_client:getvconf(Ctx, "test.zfor", xx),
 	ok.
 
 % vim600: noet ft=erlang ts=4 sw=4 fdm=marker

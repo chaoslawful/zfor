@@ -18,7 +18,20 @@ extern "C" {
 	/**
 	 * Replacement for getaddrinfo() in system libc
 	 * */
-	int zfor_getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);
+	int zfor_getaddrinfo(const char *node, const char *service,
+						 const struct addrinfo *hints,
+						 struct addrinfo **res);
+
+	/**
+	 * Get ZFOR config property for specified virtual hostname
+	 * */
+	int zfor_getvconf(const char *vhost, const char *prop, char *buf,
+					   int maxbuflen);
+
+	/**
+	 * Set UDP address (host-endian IPv4) of zfor server
+	 * */
+	uint32_t zfor_set_udp_addr(uint32_t addr);
 
 	/**
 	 * Set UDP port of zfor server
@@ -33,5 +46,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif
 
+// vim600: noet ts=4 sw=4 fdm=marker
+// vim<600: noet ts=4 sw=4
+#endif

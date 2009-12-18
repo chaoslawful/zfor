@@ -5,31 +5,30 @@
 #include <stdlib.h>
 #include "zfor.h"
 
-int main(int argc,char *argv[])
+int main(int argc, char *argv[])
 {
 	struct hostent *h;
 
-	if(argc != 2) {
+	if (argc != 2) {
 		fprintf(stderr, "Usage: %s <hostname>\n", argv[0]);
 		exit(1);
 	}
 
 	h = zfor_gethostbyname(argv[1]);
-	if(h) {
+	if (h) {
 		struct in_addr *ap;
 		int got = 0;
 		char **p = h->h_addr_list;
-		while(*p) {
+		while (*p) {
 			got = 1;
-			ap = (struct in_addr*)*p;
+			ap = (struct in_addr *) *p;
 			printf("%s resolved to %s\n", h->h_name, inet_ntoa(*ap));
 			p++;
 		}
-		if(!got) {
+		if (!got) {
 			printf("failed to resolve %s\n", argv[1]);
 		}
 	} else {
 		printf("zfor_gethostbyname failed!\n");
 	}
 }
-

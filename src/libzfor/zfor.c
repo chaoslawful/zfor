@@ -13,9 +13,12 @@
 #include <unistd.h>
 #include "zfor.h"
 
+#define ZFOR_CMD_DNS 0
+#define ZFOR_CMD_GET_VCONF 1
+
+#define ZFOR_UDP_ADDR 0x7f000001	// default to 127.0.0.1
 #define ZFOR_UDP_PORT 1117
 #define ZFOR_UDP_TIMEOUT 100
-#define ZFOR_CMD_DNS 0
 #define ZFOR_MAX_HOSTADDRS 16
 #define ZFOR_MAX_ALIASES 0
 
@@ -35,6 +38,7 @@ struct zfor_result_data {
 static char zfor_static_buf[sizeof(struct zfor_result_data) +
 							ZFOR_MAX_HOSTADDRS * sizeof(in_addr_t)];
 
+static uint32_t zfor_udp_addr = ZFOR_UDP_ADDR;
 static int zfor_udp_port = ZFOR_UDP_PORT;
 static int zfor_udp_timeout = ZFOR_UDP_TIMEOUT;
 
@@ -51,6 +55,9 @@ static struct zfor_result_data *zfor_setup_result(void *resbuf,
 												  int resbuflen);
 static struct hostent *zfor_lookup(const char *name, void *resbuf,
 								   int resbuflen, int *errp);
+static int zfor_sync_call(struct sockaddr_in *host_and_port, int timeout,
+						  const char *req, int reqlen, char *resp,
+						  int maxresplen);
 
 //////////////////////// Exported API //////////////////////////
 
@@ -161,6 +168,81 @@ struct hostent *zfor_gethostbyname(const char *name)
 	}
 	// ZFOR resolving failed, fall back to system original gethostbyname()
 	return zfor_sys_gethostbyname(name);
+}
+
+/* }}} */
+
+int zfor_getvconf(const char *vhost, const char *prop, char *buf,
+				   int maxbuflen)
+/* {{{ */
+{
+	char payload[4096];
+	char tmpbuf[4096];
+	int prop_len, vhost_len, payload_len;
+	int len;
+	struct sockaddr_in srvaddr;
+
+	if (!vhost || !vhost[0]
+		|| (vhost_len = strlen(vhost)) > sizeof(payload)) {
+		return -1;
+	}
+
+	if (!prop || !prop[0] || (prop_len = strlen(prop)) > sizeof(payload)) {
+		return -1;
+	}
+
+	payload_len = 1 + prop_len + vhost_len;
+	if (payload_len > sizeof(payload)) {
+		return -1;
+	}
+
+	if (!buf || maxbuflen <= 0) {
+		return -1;
+	}
+
+	/* Construct ZFOR request payload */
+	payload[0] = (char) prop_len;
+	memcpy(payload + 1, prop, prop_len);
+	memcpy(payload + prop_len + 1, vhost, vhost_len);
+
+	/* Construct ZFOR request packet */
+	len =
+		zfor_make_req(tmpbuf, sizeof(tmpbuf), ZFOR_CMD_GET_VCONF, payload,
+					  payload_len);
+	if (len < 0) {
+		return -1;
+	}
+
+	memset(&srvaddr, 0, sizeof(srvaddr));
+	srvaddr.sin_addr.s_addr = htonl(zfor_udp_addr);
+	srvaddr.sin_port = htons(zfor_udp_port);
+
+	/* Synchronize call ZFOR service */
+	len =
+		zfor_sync_call(&srvaddr, zfor_udp_timeout * 1000, tmpbuf, len,
+					   tmpbuf, sizeof(tmpbuf));
+	if (len > 0 && maxbuflen >= len - 1) {	/* Make sure there are enough spaces for the result */
+		if (tmpbuf[0] == 1) {
+			/* Call completed successfully */
+			memcpy(buf, tmpbuf + 1, len - 1);
+			return len - 1;
+		}
+	}
+
+	return -1;
+}
+
+/* }}} */
+
+uint32_t zfor_set_udp_addr(uint32_t addr)
+/* {{{ */
+{
+	uint32_t old_addr;
+
+	old_addr = zfor_udp_addr;
+	zfor_udp_addr = addr;
+
+	return old_addr;
 }
 
 /* }}} */
@@ -332,9 +414,6 @@ static struct hostent *zfor_lookup(const char *name, void *resbuf,
 	struct in_addr addr;
 	in_addr_t *ap;
 	struct sockaddr_in srvaddr;
-	struct timeval tv;
-	int sock;
-	fd_set rfds;
 	char buf[4096];
 	int len;
 
@@ -372,42 +451,22 @@ static struct hostent *zfor_lookup(const char *name, void *resbuf,
 	}
 	// Try resolve host name through ZFOR service
 
-	sock = socket(AF_INET, SOCK_DGRAM, 0);
-	if (sock < 0) {
-		goto fallback;
-	}
-
 	memset(&srvaddr, 0, sizeof(srvaddr));
-	srvaddr.sin_addr.s_addr = htonl(0x7f000001);	// 127.0.0.1
+	srvaddr.sin_addr.s_addr = htonl(zfor_udp_addr);
 	srvaddr.sin_port = htons(zfor_udp_port);
 
 	len = zfor_make_req(buf, sizeof(buf),
 						ZFOR_CMD_DNS, name, strlen(name));
 	if (len < 0) {
-		goto fallback;
+		return NULL;
 	}
 
-	if (sendto(sock, buf, len, 0,
-			   (struct sockaddr *) &srvaddr, sizeof(srvaddr)) < 0) {
-		goto fallback;
-	}
+	len =
+		zfor_sync_call(&srvaddr, zfor_udp_timeout * 1000, buf, len, buf,
+					   sizeof(buf));
 
-	FD_ZERO(&rfds);
-	FD_SET(sock, &rfds);
-
-	tv.tv_sec = 0;
-	tv.tv_usec = zfor_udp_timeout * 1000;
-
-	if (select(sock + 1, &rfds, NULL, NULL, &tv) > 0) {
+	if (len > 0) {
 		int i, total;
-
-		len = recv(sock, buf, sizeof(buf), 0);
-
-		close(sock);
-
-		// Set socket to negative value, to make sure fallback progress
-		// don't repeatly close socket
-		sock = -1;
 
 		// Get the resolved address number
 		total = buf[0];
@@ -416,7 +475,7 @@ static struct hostent *zfor_lookup(const char *name, void *resbuf,
 		// turn to use system-wide gethostbyname()
 		if (total * 4 + 1 != len || total > ZFOR_MAX_HOSTADDRS
 			|| total == 0) {
-			goto fallback;
+			return NULL;
 		}
 		// Construct returning host entries according to addresses returned
 		// by ZFOR.
@@ -448,14 +507,67 @@ static struct hostent *zfor_lookup(const char *name, void *resbuf,
 		return &(p->zfor_hostent);
 	}
 
-  fallback:
-	// ZFOR lookuping failed, use system-wide gethostbyname() to resolve
-	// Close UDP socket communicating with ZFOR first
-	if (sock >= 0) {
+	return NULL;
+}
+
+/* }}} */
+
+static int zfor_sync_call(struct sockaddr_in *host_and_port, int timeout,
+						  const char *req, int reqlen, char *resp,
+						  int maxresplen)
+/* {{{ */
+{
+	int rc;
+	struct timeval tv;
+	int sock;
+	fd_set rfds;
+	int nfds;
+	int len;
+
+	if (!req || reqlen <= 0 || !resp || maxresplen <= 0) {
+		return -1;
+	}
+
+	sock = socket(AF_INET, SOCK_DGRAM, 0);
+
+	if (sock < 0) {
+		rc = -1;
+	} else {
+		/* Send request to ZFOR service */
+		len =
+			sendto(sock, req, reqlen, 0, (struct sockaddr *) host_and_port,
+				   sizeof(struct sockaddr_in));
+
+		if (len < 0) {
+			rc = -1;
+		} else {
+			/* Request sent, wait for response */
+			FD_ZERO(&rfds);
+			FD_SET(sock, &rfds);
+
+			tv.tv_sec = 0;
+			tv.tv_usec = timeout;
+
+			nfds = select(sock + 1, &rfds, NULL, NULL, &tv);
+
+			if (nfds <= 0) {
+				rc = -1;
+			} else {
+				len = recv(sock, resp, maxresplen, 0);
+
+				if (len < 0) {
+					rc = -1;
+				} else {
+					rc = len;
+				}
+			}
+		}
+
 		close(sock);
 	}
 
-	return NULL;
+
+	return rc;
 }
 
 /* }}} */

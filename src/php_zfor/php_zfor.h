@@ -15,10 +15,11 @@ PHP_MINIT_FUNCTION(zfor);
 PHP_MSHUTDOWN_FUNCTION(zfor);
 PHP_MINFO_FUNCTION(zfor);
 
+PHP_FUNCTION(zfor_set_udp_addr);
 PHP_FUNCTION(zfor_set_udp_port);
 PHP_FUNCTION(zfor_set_udp_timeout);
 PHP_FUNCTION(zfor_gethostbyname);
 PHP_FUNCTION(zfor_gethostbynamel);
+PHP_FUNCTION(zfor_getvconf);
 
 #endif
-

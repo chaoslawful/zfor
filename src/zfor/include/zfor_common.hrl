@@ -21,7 +21,8 @@
 									% 设置，则服务监控程序自动终止自身及其下监控的所有服务，以避免某些错误场合下服务
 									% 连续重启。
 
--define(REQ_DNS, 0). 	% 正向DNS解析请求
+-define(REQ_DNS, 0). 	% Request type: Forward hostname resolving
+-define(REQ_GET_VCONF, 1).	% Request type: Get virtual hostname configuration
 
 -define(ERR_LOG,error_logger:error_msg).
 -define(WARN_LOG,error_logger:warning_msg).

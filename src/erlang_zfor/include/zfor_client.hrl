@@ -3,6 +3,7 @@
 -define(DEFAULT_ZFOR_TIMEOUT, 500).
 
 -define(ZFOR_REQ_DNS, 0).
+-define(ZFOR_REQ_GET_VCONF, 1).
 
 % @type zfor_client_ctx() Context parameters needed by zfor client.
 -record(zfor_client_ctx, {

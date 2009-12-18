@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	gettimeofday(&begin, NULL);
 	{
 #if 0
-		while(!kbhit()) {
+		while (!kbhit()) {
 #else
 		int i;
 		for (i = 0; i < 10000; ++i) {
@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
 
 	printf("Total count: %d\n", cnt);
 	printf("Total time: %lg s\n",
-			(end.tv_sec - begin.tv_sec) + 1e-6 * (end.tv_usec -
-				begin.tv_usec));
+		   (end.tv_sec - begin.tv_sec) + 1e-6 * (end.tv_usec -
+												 begin.tv_usec));
 }
-

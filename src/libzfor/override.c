@@ -31,4 +31,3 @@ int main(int argc, char *argv[])
 		printf("gethostbyname failed!\n");
 	}
 }
-
