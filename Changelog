@@ -1,5 +1,7 @@
 2009-12-18 Wang Xiaozhe <chaoslawful@gmail.com>
 	* added getaddrinfo() interception
+	* added set zfor service address api
+	* added get virtual host config api
 
 2009-9-18 Wang Xiaozhe <chaoslaful@gmail.com>
 	* added fixed and remote host list option
