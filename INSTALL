@@ -52,3 +52,14 @@
 		+- etc/
 			+- zfor/ 			- zfor virtual host config files places here
 
+
+- NOTES
+
+* In the latest libzfor.so, getaddrinfo() is intercepted and most program using this function should be able to working along with ZFOR by simply preloading libzfor.so. No more need to modifying code to resolve hostnames using zfor_gethostbyname() explicitly. For example:
+
+	$ LD_PRELOAD=/usr/local/lib/libzfor.so curl "http://a.zfor"
+
+But the CURL function in PHP with Suhosin security patch (like the one comes within Ubuntu-release) is an exception. The alternative way to make it working is preloading both libzfor.so and libcurl.so, as the following shows:
+
+	$ LD_PRELOAD="/usr/lib/libcurl.so /usr/local/lib/libzfor.so" php -r '$ch=curl_init("http://xx.zfor");curl_exec($ch);'
+
