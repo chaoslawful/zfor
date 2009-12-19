@@ -4,11 +4,14 @@ PREFIX=/usr/local
 all:
 	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i all; done
 
-ext:
-	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i ext; done
+php:
+	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i php; done
 
 erl:
 	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i erl; done
+
+java:
+	for i in $(SUBDIRS); do $(MAKE) PREFIX=$(PREFIX) -C $$i java; done
 
 pkg:
 	#	$(MAKE) PREFIX=$(PREFIX) -C pkg
@@ -20,13 +23,12 @@ pkg:
 	tar czf /tmp/zfor.tar.gz $$cwd; \
 	rpmbuild --define="_topdir $$builddir" -tb /tmp/zfor.tar.gz
 
-
-ext-pkg:
-	$(MAKE) PREFIX=$(PREFIX) -C pkg ext-pkg
+php-pkg:
+	$(MAKE) PREFIX=$(PREFIX) -C pkg php-pkg
 
 clean:
 	for i in $(SUBDIRS) pkg; do $(MAKE) PREFIX=$(PREFIX) -C $$i clean; done
 	rm -rf build
 
-.PHONY: all ext pkg ext-pkg clean
+.PHONY: all php erl java pkg php-pkg clean
 

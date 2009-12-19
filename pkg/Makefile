@@ -6,13 +6,13 @@ VERSION=$(shell grep Version ../Changelog|head -1|awk '{print $$3}')
 PKGNAME=zfor-$(VERSION)
 EXT_PKGNAME=php-zfor-$(VERSION)
 EXT_ROOT=$(shell php-config --extension-dir)
-INI_ROOT=$(shell php --ini|grep "Scan for additional .ini files"|perl -ane 'print $$F[-1]')
+INI_ROOT=$(shell php -i|grep "Scan"|perl -ane 'print $$F[-1]')
 TMP_EXT_ROOT=$(TMP_DIR)/$(EXT_ROOT)
 TMP_INI_ROOT=$(TMP_DIR)/$(INI_ROOT)
 
 pkg: tgz deb rpm
 
-ext-pkg: ext-tgz ext-deb ext-rpm
+php-pkg: php-tgz php-deb php-rpm
 
 tgz:
 	sudo rm -rf $(TMP_DIR); \
@@ -51,7 +51,7 @@ deb: tgz
 rpm: tgz
 	sudo alien -k -r $(PKGNAME).tgz
 
-ext-tgz:
+php-tgz:
 	sudo rm -rf $(TMP_DIR); \
 	mkdir -p $(TMP_EXT_ROOT); \
 	mkdir -p $(TMP_INI_ROOT); \
@@ -62,15 +62,15 @@ ext-tgz:
 	sudo tar -czf ./$(EXT_PKGNAME).tgz -P --transform "s/$(SLASHED_TMP_DIR)//" $(TMP_DIR); \
 	sudo chmod a+rw ./$(EXT_PKGNAME).tgz;
 
-ext-deb: ext-tgz
+php-deb: php-tgz
 	sudo alien -k -d $(EXT_PKGNAME).tgz
 
-ext-rpm: ext-tgz
+php-rpm: php-tgz
 	sudo alien -k -r $(EXT_PKGNAME).tgz
 
 clean:
 	rm -rf *.tgz *.rpm *.deb
 	sudo rm -rf $(TMP_DIR)
 
-.PHONY: tgz deb rpm ext-tgz ext-deb ext-rpm clean
+.PHONY: tgz deb rpm php-tgz php-deb php-rpm clean
 

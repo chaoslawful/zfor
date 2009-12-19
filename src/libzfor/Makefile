@@ -1,5 +1,5 @@
 CC := gcc
-CCFLAGS := -g -O2 -fPIC
+CCFLAGS := -g3 -O2 -fPIC
 UNAME := $(shell uname)
 
 ifeq ($(UNAME), Darwin)

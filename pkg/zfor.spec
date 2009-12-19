@@ -59,7 +59,7 @@ This package contains Erlang client module for ZFOR.
 # build main files
 make PREFIX=%{_prefix} all
 # build php extension
-make PREFIX=%{_prefix} ext
+make PREFIX=%{_prefix} php
 # build erlang client
 make PREFIX=%{_prefix} erl
 

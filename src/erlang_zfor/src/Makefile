@@ -7,7 +7,9 @@ DIALYZER_OPT = -c --src \
 ERL_COMPILE_FLAGS += \
 	-DDEBUG \
 	+warn_unused_vars +warn_shadow_vars +warn_unused_import \
-	+debug_info
+	+debug_info \
+	+native \
+	+"{hipe,[o3]}"
 DOC_OPTS = {dir,\"../edoc\"}
 
 SOURCES = \
