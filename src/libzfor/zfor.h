@@ -58,5 +58,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-// vim600: noet ts=4 sw=4 fdm=marker// vim<600: noet ts=4 sw=4
 #endif
+
+// vim600: noet ts=4 sw=4 fdm=marker
+// vim<600: noet ts=4 sw=4
+
