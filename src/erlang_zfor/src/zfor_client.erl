@@ -3,7 +3,7 @@
 -include("zfor_log.hrl").
 -vsn("%VSN%").
 -compile([debug_info, bin_opt_info]).
--export([context/3, getaddr/2, getaddrs/2, getvconf/3]).
+-export([context/3, getaddr/2, getaddrs/2, getaddr_nfb/2, getaddrs_nfb/2, getvconf/3]).
 
 %% ====================== Exported API =======================
 
@@ -33,6 +33,26 @@ context(Server, Port, Timeout) when is_list(Server), is_integer(Port), is_intege
 
 getaddr(Ctx, Hostname) when is_record(Ctx, zfor_client_ctx), is_list(Hostname) ->
 	case getaddrs(Ctx, Hostname) of
+		{'ok', []} -> {'error', 'not_available'};
+		{'ok', [Addr | _]} -> {'ok', Addr};
+		{'error', Reason} -> {'error', Reason}
+	end.
+% }}}
+
+% @doc Resolve the given hostname (real/virtual) through ZFOR service, return the 1st entry.
+% (No fallback to system-wide DNS resolving facility).
+% @spec getaddr_nfb(Ctx :: zfor_client_ctx(), Hostname :: string()) ->
+%			{'ok', Address :: tuple()}
+%			| {'error', Reason :: term()}
+% @end
+% {{{
+-spec getaddr_nfb(Ctx :: zfor_client_ctx(), Hostname :: string()) ->
+			{'ok', Address :: tuple()}
+			| {'error', Reason :: term()}.
+
+getaddr_nfb(Ctx, Hostname) when is_record(Ctx, zfor_client_ctx), is_list(Hostname) ->
+	case getaddrs_nfb(Ctx, Hostname) of
+		{'ok', []} -> {'error', 'not_available'};
 		{'ok', [Addr | _]} -> {'ok', Addr};
 		{'error', Reason} -> {'error', Reason}
 	end.
@@ -54,9 +74,29 @@ getaddrs(Ctx, Hostname) when is_record(Ctx, zfor_client_ctx), is_list(Hostname) 
 		_ ->	% Not found in zfor server or error occured
 			?INFO("Failed to resolving hostname (~p) through zfor, fall-back to inet~n", [Hostname]),
 			case inet_getaddrs(Hostname) of
+				{'ok', []} -> {'error', 'not_available'};
 				{'ok', Addrs} -> {'ok', Addrs};
 				{'error', Reason} -> {'error', Reason}
 			end
+	end.
+% }}}
+
+% @doc Resolve the given hostname (real/virtual) through ZFOR service, return all entries.
+% (No fallback to system-wide DNS resolving facility).
+% @spec getaddrs_nfb(Ctx :: zfor_client_ctx(), Hostname :: string()) ->
+%			{'ok', AddrList :: [tuple()]}
+%			| {'error', Reason :: term()}
+% @end
+% {{{
+-spec getaddrs_nfb(Ctx :: zfor_client_ctx(), Hostname :: string()) ->
+			{'ok', AddrList :: [tuple()]}
+			| {'error', Reason :: term()}.
+
+getaddrs_nfb(Ctx, Hostname) when is_record(Ctx, zfor_client_ctx), is_list(Hostname) ->
+	case zfor_getaddrs(Ctx, Hostname) of
+		{'ok', []} -> {'error', 'not_available'};
+		{'ok', Addrs = [_ | _]} -> {'ok', Addrs};
+		{'error', Reason} -> {'error', Reason}
 	end.
 % }}}
 
@@ -132,10 +172,14 @@ zfor_getvconf(Ctx, Hostname, Prop) ->
 			| {'error', Reason :: term()}.
 
 zfor_getaddrs(Ctx, Hostname) ->
-	Req = make_zfor_request('DNS', [Hostname]),
-	case zfor_sync_call(Ctx, Req) of
-		{'ok', Reply} -> parse_dns_reply(Reply);
-		Other -> Other
+	case inet_parse:ipv4_address(Hostname) of
+		{'ok', Addr} -> {'ok', [Addr]};		% Numeric form IPv4 address
+		_ ->	% Non-numeric form hostname, go on for actual resolving job
+			Req = make_zfor_request('DNS', [Hostname]),
+			case zfor_sync_call(Ctx, Req) of
+				{'ok', Reply} -> parse_dns_reply(Reply);
+				Other -> Other
+			end
 	end.
 % }}}
 
@@ -213,7 +257,7 @@ parse_getvconf_reply(<<1, Val/binary>>) ->
 	{'ok', binary_to_list(Val)};
 
 parse_getvconf_reply(<<0>>) ->
-	{'error', 'not_found'};
+	{'error', 'not_available'};
 
 parse_getvconf_reply(_) ->
 	{'error', 'invalid_reply'}.
