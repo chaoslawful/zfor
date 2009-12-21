@@ -2,7 +2,7 @@ ifndef ROOT
 	ROOT = $(shell pwd)
 endif
 
-VSN=1.0
+VSN=1.0.5
 CONFPATH=/usr/local/etc/zfor/
 
 COMMON_TEST_LIB = $(shell erl -noshell -eval 'io:format("~s~n", [code:lib_dir(common_test)]).' -s init stop)
