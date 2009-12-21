@@ -1,3 +1,6 @@
+2009-12-21 Wang Xiaozhe <chaoslawful@gmail.com>
+	* added fail-back controllable api
+
 2009-12-18 Wang Xiaozhe <chaoslawful@gmail.com>
 	* added getaddrinfo() interception
 	* added set zfor service address api
