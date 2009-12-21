@@ -46,9 +46,10 @@
 -define(DEFAULT_VHOST_GROUP_THRESHOLD, 10).
 -define(DEFAULT_VHOST_FAILURE_RESPONSE, 'none').
 
+% @type datetime() Date-time struct as returned by erlang:localtime/0.
 -type datetime()::{date(), time()}.
 
-% ZFOR服务状态数据结构
+% @type server_state() ZFOR service state struct.
 -record(server_state,
 	{
 		proc_dict::dict(), 							% 保存当前启动的功能进程列表
@@ -64,7 +65,7 @@
 ).
 -type server_state()::#server_state{}.
 
-% 功能进程项记录
+% @type proc_info() Worker process state.
 -record(proc_info,
 	{
 		ts::datetime(), 	% 进程活动检查时戳。localtime()
@@ -73,7 +74,7 @@
 ).
 -type proc_info()::#proc_info{}.
 
-% 全局配置参数记录结构
+% @type global_conf() Global configuration record.
 -record(global_conf,
 	{
 		host_list=?DEFAULT_HOST_LIST::[{string(),tuple()}],		% 主机列表定义，类型[{string(), tuple()}]
@@ -85,7 +86,7 @@
 ).
 -type global_conf()::#global_conf{}.
 
-% 虚拟主机配置参数记录结构
+% @type vhost_conf() Virtual host configuration record.
 -record(vhost_conf,
 	{
 		hostnames=?DEFAULT_VHOST_HOST::({'host_list', string()} | [string()]), 				% 虚拟主机下属主机域名列表，类型[string()]
@@ -103,11 +104,14 @@
 	}
 ).
 -type vhost_conf()::#vhost_conf{}.
+
+% @type vhost_conf_key() Key type for virtual host configuration in ETS table.
 -type vhost_conf_key()::{atom(), string()}.
+
+% @type vhost_conf_obj() Object type for virtual host configuration in ETS table.
 -type vhost_conf_obj()::{vhost_conf_key(), datetime(), vhost_conf()}.
 
-
-% 实际主机健康状态记录结构
+% @type host_stat() Real host health status record.
 -record(host_stat,
 	{
 		hostname::string(), 	% 虚拟主机下属实际主机域名，类型string()
@@ -118,7 +122,7 @@
 ).
 -type host_stat()::#host_stat{}.
 
-% 虚拟主机健康状态记录结构
+% @type vhost_stat() Virtual host health status record.
 -record(vhost_stat,
 	{
 		state::atom(), 		% 虚拟主机最近一次综合健康检查状态，类型atom()，取值为alive/dead
@@ -127,9 +131,14 @@
 	}
 ).
 -type vhost_stat()::#vhost_stat{}.
+
+% @type vhost_stat_key() Key type for virtual host health status in ETS table.
 -type vhost_stat_key()::{atom(), string()}.
+
+% @type vhost_stat_obj() Object type for virtual host health status in ETS table.
 -type vhost_stat_obj()::{vhost_stat_key(), datetime(), vhost_stat()}.
 
+% @type child_spec() OTP supervisor child specification.
 -type child_spec()::{
 	Id::term(),
 	StartFunc::{M::atom(), F::atom(), A::[term()]},

@@ -146,6 +146,7 @@ handle_req(<<PropLen/integer, PropName:PropLen/binary, Data/binary>>, 'req_get_v
 handle_req(_, Req, _) ->
 	?WARN_LOG("Unrecognized request command : ~p~n", [Req]),
 	<<0>>.
+% }}}
 
 % @doc Convert ipaddress() tuple list into big-endian octets.
 % The result list could contains up to 16 addresses.

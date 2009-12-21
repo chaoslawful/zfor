@@ -19,16 +19,27 @@
 		]).
 -compile([debug_info, bin_opt_info]).
 
-% 删除指定虚拟主机的健康记录
+%% ====================== Exported API =======================
+
+% @doc Delete the health status record of specified virtual host.
+% @spec del_vhost(State :: server_state(), VHostname : :string()) -> true
+% @end
+% {{{
 -spec del_vhost(State::server_state(), VHostname::string()) -> true.
+
 del_vhost(State, VHostname) ->
 	HealthTid = State#server_state.health_ets_id,
 	VHostKey = {?VHOST_HEALTH_PREFIX, VHostname},
 	ets:delete(HealthTid, VHostKey),
 	del_vhost_curhost(State, VHostname).
+% }}}
 
-% 从ETS健康状态表中查找指定虚拟主机的记录
+% @doc Get the health status record of specified virtual host.
+% @spec get_vhost(State :: server_state(), VHostname :: string()) -> {'ok', vhost_stat()} | 'undefined'
+% @end
+% {{{
 -spec get_vhost(State::server_state(), VHostname::string()) -> {'ok', vhost_stat()} | 'undefined'.
+
 get_vhost(State, VHostname) ->
 	Tid = State#server_state.health_ets_id,
 	VHostKey = {?VHOST_HEALTH_PREFIX, VHostname},
@@ -38,9 +49,14 @@ get_vhost(State, VHostname) ->
 		_ ->
 			undefined
 	end.
+% }}}
 
-% 强制检查并更新指定虚拟主机的健康状态(阻塞)
+% @doc Force refreshing the health status of specified virtual host. (Blocking)
+% @spec refresh_status(State :: server_state(), VHostname :: string()) -> boolean()
+% @end
+% {{{
 -spec refresh_status(State::server_state(), VHostname::string()) -> boolean().
+
 refresh_status(State, VHostname) ->
 	case zfor_config:get_vhost_conf(State, VHostname) of
 		undefined ->
@@ -51,10 +67,18 @@ refresh_status(State, VHostname) ->
 			check_and_update_vhost_stat(State, VHostname, VHostConf),
 			true
 	end.
+% }}}
 
-% 派生虚拟主机健康状态监控进程，会按照ETS表中对应虚拟主机的最新配置
-% 进行健康检查，并在找不到虚拟主机对应的配置数据时退出。
+% @doc Virtual host health checker.
+% It will periodly check and update the health status of specified virtual host
+% according to corresponding config data. When the virtual host no longer existed
+% in the config data, the checker will remove corresponding health status record
+% and exit.
+% @spec vhost_checker(State :: server_state(), VHostname :: string()) -> 'ok'
+% @end
+% {{{
 -spec vhost_checker(State::server_state(), VHostname::string()) -> 'ok'.
+
 vhost_checker(State, VHostname) ->
 	case zfor_config:get_vhost_conf(State, VHostname) of
 		{ok, _, VHostConf} ->
@@ -69,9 +93,15 @@ vhost_checker(State, VHostname) ->
 			del_vhost(State, VHostname),
 			ok
 	end.
+% }}}
 
-% Increase the curhost index of the specified virtual host
+% @doc Increase the curhost index of the specified virtual host, to ease implementing 'round_robin'
+% load-balancing policy.
+% @spec inc_vhost_curhost(State::server_state(), VHostname::string(), Step::integer()) -> integer()
+% @end
+% {{{
 -spec inc_vhost_curhost(State::server_state(), VHostname::string(), Step::integer()) -> integer().
+
 inc_vhost_curhost(State, VHostname, Step) ->
 	HealthTid = State#server_state.health_ets_id,
 	VHostKey = {?VHOST_CURHOST_PREFIX, VHostname},
@@ -84,14 +114,25 @@ inc_vhost_curhost(State, VHostname, Step) ->
 			ets:insert_new(HealthTid, {VHostKey, 1}),
 			1
 	end.
+% }}}
 
-% Increase/reset the curhost index of the specified virtual host
+% @doc Increase/reset the curhost index of the specified virtual host, to ease implementing
+% 'round_robin' load-balancing policy.
+% @spec inc_vhost_curhost(
+%			State :: server_state(),
+%			VHostname :: string(),
+%			Step :: integer(),
+%			IdxLimit :: integer()
+%		) -> integer()
+% @end
+% {{{
 -spec inc_vhost_curhost(
 	State :: server_state(),
 	VHostname :: string(),
 	Step :: integer(),
 	IdxLimit :: integer()
 ) -> integer().
+
 inc_vhost_curhost(State, VHostname, Step, IdxLimit) ->
 	HealthTid = State#server_state.health_ets_id,
 	VHostKey = {?VHOST_CURHOST_PREFIX, VHostname},
@@ -104,22 +145,37 @@ inc_vhost_curhost(State, VHostname, Step, IdxLimit) ->
 			ets:insert_new(HealthTid, {VHostKey, 1}),
 			1
 	end.
+% }}}
 
-% Delete the curhost index record of the specified virtual host
+% @doc Delete the curhost index record of the specified virtual host, to ease implementing 'round_robin'
+% load-balancing policy.
+% @spec del_vhost_curhost(State :: server_state(), VHostname :: string()) -> true
+% @end
+% {{{
 -spec del_vhost_curhost(State::server_state(), VHostname::string()) -> true.
+
 del_vhost_curhost(State, VHostname) ->
 	HealthTid = State#server_state.health_ets_id,
 	VHostKey = {?VHOST_CURHOST_PREFIX, VHostname},
 	ets:delete(HealthTid, VHostKey).
+% }}}
 
-% ------ 内部实现函数 -------
+%% =================== Internal Functions ====================
 
-% 检查虚拟主机健康状态并更新ETS表
+% @doc Check virtual host health status, and updating corresponding record in ETS table.
+% @spec check_and_update_vhost_stat(
+%			State :: server_state(),
+%			VHostname :: string(),
+%			VHostConf :: vhost_conf()
+%		) -> 'ok'
+% @end
+% {{{
 -spec check_and_update_vhost_stat(
 	State :: server_state(),
 	VHostname :: string(),
 	VHostConf :: vhost_conf()
 ) -> 'ok'.
+
 check_and_update_vhost_stat(State, VHostname, VHostConf) ->
 	Hostnames = VHostConf#vhost_conf.hostnames,
 	CheckTimeout = VHostConf#vhost_conf.check_timeout,
@@ -142,14 +198,24 @@ check_and_update_vhost_stat(State, VHostname, VHostConf) ->
 		),
 	% 根据实际主机检查结果和选择策略刷新ETS中的虚拟主机健康状态记录
 	update_vhost_stat(State, VHostname, HostStats, VHostConf).
+% }}}
 
-% 更新ETS表中的虚拟主机健康记录
+% @doc Update virtual host health status record in ETS table.
+% @spec update_vhost_stat(
+%			State :: server_state(),
+%			VHostname :: string(),
+%			HostStats :: [host_stat()],
+%			VHostConf :: vhost_conf()
+%		) -> 'ok'
+% @end
+% {{{
 -spec update_vhost_stat(
 	State :: server_state(),
 	VHostname :: string(),
 	HostStats :: [host_stat()],
 	VHostConf :: vhost_conf()
 ) -> 'ok'.
+
 update_vhost_stat(State, VHostname, HostStats, VHostConf) ->
 	Tid = State#server_state.health_ets_id,
 	VHostKey = {?VHOST_HEALTH_PREFIX, VHostname},
@@ -159,13 +225,23 @@ update_vhost_stat(State, VHostname, HostStats, VHostConf) ->
 	% 将虚拟主机健康检查结果插入ETS表
 	ets:insert(Tid, {VHostKey, UpdateTS, VHostState}),
 	ok.
+% }}}
 
-% 根据虚拟主机域名和实际主机的健康检查结果构造虚拟主机健康状态记录
+% @doc Construct virtual host health status record according to its real hosts'
+% health checking results.
+% @spec make_vhost_stat(
+%			VHostname :: string(),
+%			HostStats :: [host_stat()],
+%			VHostConf :: vhost_conf()
+%		) -> vhost_stat()
+% @end
+% {{{
 -spec make_vhost_stat(
 	VHostname :: string(),
 	HostStats :: [host_stat()],
 	VHostConf :: vhost_conf()
 ) -> vhost_stat().
+
 make_vhost_stat(VHostname, HostStats, VHostConf) ->
 	case VHostConf#vhost_conf.failure_response of
 		'all' ->
@@ -345,9 +421,14 @@ make_vhost_stat(VHostname, HostStats, VHostConf) ->
 			?WARN_LOG("Unrecognizable host selection method '~p' for vhost ~p~n", [Other, VHostname]),
 			DeadVHost
 	end.
+% }}}
 
-% 检查实际主机健康状态并返回host_stat记录
+% @doc Check specified real host health status.
+% @spec check_host_stat(Hostname :: string(), VHostConf :: vhost_conf()) -> host_stat()
+% @end
+% {{{
 -spec check_host_stat(Hostname :: string(), VHostConf :: vhost_conf()) -> host_stat().
+
 check_host_stat(Hostname, VHostConf) ->
 	DeadState = #host_stat{hostname = Hostname, state = 'dead'},
 	% 1. 解析主机域名为IPv4地址
@@ -445,6 +526,8 @@ check_host_stat(Hostname, VHostConf) ->
 			?WARN_LOG("Unable to resolve hostname ~p~n", [Hostname]),
 			DeadState
 	end.
+% }}}
 
-% vim:ft=erlang ts=4 sw=4
+% vim600: noet ft=erlang ts=4 sw=4 fdm=marker
+% vim<600: noet ft=erlang ts=4 sw=4
 
