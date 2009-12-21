@@ -23,7 +23,8 @@ static function_entry zfor_functions[] = {
 	PHP_FE(zfor_set_udp_timeout, NULL)
 	PHP_FE(zfor_gethostbyname, NULL)
 	PHP_FE(zfor_gethostbynamel, NULL)
-	PHP_FE(zfor_getvconf, NULL) {NULL, NULL, NULL}
+	PHP_FE(zfor_getvconf, NULL)
+	{NULL, NULL, NULL}
 };
 
 /* }}} */
@@ -101,7 +102,7 @@ PHP_FUNCTION(zfor_set_udp_addr)
 	p = (uint32_t *) addr;
 	old_addr = zfor_set_udp_addr(*p);
 
-	RETURN_STRINGL((char*)&old_addr, sizeof(old_addr), 1);
+	RETURN_STRINGL((char *) &old_addr, sizeof(old_addr), 1);
 }
 
 /* }}} */
@@ -154,15 +155,17 @@ PHP_FUNCTION(zfor_gethostbyname)
 	int argc = ZEND_NUM_ARGS();
 	char *hostname = NULL;
 	int hostname_len;
+	zend_bool failback = 1;
 	struct hostent *hp;
 	struct in_addr in;
 
 	if (zend_parse_parameters
-		(argc TSRMLS_CC, "s", &hostname, &hostname_len) == FAILURE) {
+		(argc TSRMLS_CC, "s|b", &hostname, &hostname_len,
+		 &failback) == FAILURE) {
 		return;
 	}
 
-	hp = zfor_gethostbyname(hostname);
+	hp = zfor_gethostbyname2(hostname, (int) failback);
 
 	if (!hp || !hp->h_addr_list || !*(hp->h_addr_list)) {
 		RETURN_FALSE;
@@ -180,16 +183,18 @@ PHP_FUNCTION(zfor_gethostbynamel)
 	int argc = ZEND_NUM_ARGS();
 	char *hostname = NULL;
 	int hostname_len;
+	zend_bool failback = 1;
 	struct hostent *hp;
 	struct in_addr in;
 	int i;
 
 	if (zend_parse_parameters
-		(argc TSRMLS_CC, "s", &hostname, &hostname_len) == FAILURE) {
+		(argc TSRMLS_CC, "s|b", &hostname, &hostname_len,
+		 &failback) == FAILURE) {
 		return;
 	}
 
-	hp = zfor_gethostbyname(hostname);
+	hp = zfor_gethostbyname2(hostname, failback);
 	if (!hp || !hp->h_addr_list) {
 		RETURN_FALSE;
 	}

@@ -41,10 +41,10 @@ more_test(_Config) ->
 	io:format("Resolved address for www.baidu.com: ~p~n", [Addr2]),
 	{'ok', Addrs2} = zfor_client:getaddrs(Ctx, "www.google.com"),
 	io:format("Resolved addresses for www.google.com: ~p~n", [Addrs2]),
-	{'ok', {127, 0, 0, 1}} = zfor_client:getaddr_nfb(Ctx, "test.zfor"),
-	{'ok', [{127, 0, 0, 1}, {127, 0, 0, 2}]} = zfor_client:getaddrs_nfb(Ctx, "test.zfor"),
-	{'error', _} = zfor_client:getaddr_nfb(Ctx, "www.baidu.com"),
-	{'error', _} = zfor_client:getaddrs_nfb(Ctx, "www.google.com"),
+	{'ok', {127, 0, 0, 1}} = zfor_client:getaddr(Ctx, "test.zfor", false),
+	{'ok', [{127, 0, 0, 1}, {127, 0, 0, 2}]} = zfor_client:getaddrs(Ctx, "test.zfor", false),
+	{'error', _} = zfor_client:getaddr(Ctx, "www.baidu.com", false),
+	{'error', _} = zfor_client:getaddrs(Ctx, "www.google.com", false),
 	ok.
 
 fail_test(_Config) ->
@@ -54,10 +54,10 @@ fail_test(_Config) ->
 	Ctx2 = zfor_client:context(?DEFAULT_ZFOR_SERVER, ?DEFAULT_ZFOR_PORT, ?DEFAULT_ZFOR_TIMEOUT),
 	{'error', _} = zfor_client:getaddr(Ctx2, "test1.zfor"),
 	{'error', _} = zfor_client:getaddrs(Ctx2, "test1.zfor"),
-	{'error', _} = zfor_client:getaddr_nfb(Ctx2, "test1.zfor"),
-	{'error', _} = zfor_client:getaddrs_nfb(Ctx2, "test1.zfor"),
-	{'error', _} = zfor_client:getaddr_nfb(Ctx2, "www.baidu.com"),
-	{'error', _} = zfor_client:getaddrs_nfb(Ctx2, "www.google.com"),
+	{'error', _} = zfor_client:getaddr(Ctx2, "test1.zfor", false),
+	{'error', _} = zfor_client:getaddrs(Ctx2, "test1.zfor", false),
+	{'error', _} = zfor_client:getaddr(Ctx2, "www.baidu.com", false),
+	{'error', _} = zfor_client:getaddrs(Ctx2, "www.google.com", false),
 	ok.
 
 vconf_test(_Config) ->

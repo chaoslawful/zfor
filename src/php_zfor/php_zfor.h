@@ -1,7 +1,7 @@
 #ifndef PHP_ZFOR_H__
 #define PHP_ZFOR_H__
 
-#define PHP_ZFOR_VERSION "1.0"
+#define PHP_ZFOR_VERSION "1.0.5"
 #define PHP_ZFOR_EXTNAME "zfor"
 
 extern zend_module_entry zfor_module_entry;

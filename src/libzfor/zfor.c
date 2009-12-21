@@ -16,6 +16,8 @@
 #define ZFOR_CMD_DNS 0
 #define ZFOR_CMD_GET_VCONF 1
 
+#define ZFOR_HOOK_CTL_ENV "ZFOR_HOOK_CTL"	// ZFOR system lib hooking method, "fb" (default) / "nfb"
+#define ZFOR_MAX_BUF_LEN 4096
 #define ZFOR_UDP_ADDR 0x7f000001	// default to 127.0.0.1
 #define ZFOR_UDP_PORT 1117
 #define ZFOR_UDP_TIMEOUT 100
@@ -41,6 +43,7 @@ static char zfor_static_buf[sizeof(struct zfor_result_data) +
 static uint32_t zfor_udp_addr = ZFOR_UDP_ADDR;
 static int zfor_udp_port = ZFOR_UDP_PORT;
 static int zfor_udp_timeout = ZFOR_UDP_TIMEOUT;
+static int zfor_hook_failback = 0;
 
 //////////////////////// Forward Declarations //////////////////////////
 
@@ -58,11 +61,52 @@ static struct hostent *zfor_lookup(const char *name, void *resbuf,
 static int zfor_sync_call(struct sockaddr_in *host_and_port, int timeout,
 						  const char *req, int reqlen, char *resp,
 						  int maxresplen);
+static struct hostent *zfor_hook_gethostbyname(const char *name);
+static int zfor_hook_getaddrinfo(const char *node, const char *service,
+								 const struct addrinfo *hints,
+								 struct addrinfo **res);
+static void zfor_lib_init(void);
+
+/*
+ * Define zfor_gethostbyname() to be an alias of gethostbyname(), in order to override
+ * it by LD_PRELOAD
+ * */
+struct hostent *gethostbyname(const char *name)
+	__attribute__ ((weak, alias("zfor_hook_gethostbyname")));
+
+/*
+ * Define zfor_getaddrinfo() to be an alias of getaddrinfo(), in order to override
+ * it by LD_PRELOAD
+ * */
+int getaddrinfo(const char *node, const char *service,
+				const struct addrinfo *hints, struct addrinfo **res)
+	__attribute__ ((weak, alias("zfor_hook_getaddrinfo")));
 
 //////////////////////// Exported API //////////////////////////
 
-int zfor_getaddrinfo(const char *node, const char *service,
-					 const struct addrinfo *hints, struct addrinfo **res)
+struct hostent *zfor_gethostbyname2(const char *name, int failback)
+/* {{{ */
+{
+	struct hostent *h;
+
+	if ((h =
+		 zfor_lookup(name, &zfor_static_buf, sizeof(zfor_static_buf),
+					 &h_errno)) != NULL) {
+		return h;
+	}
+
+	if (failback) {
+		return zfor_sys_gethostbyname(name);
+	}
+
+	return NULL;
+}
+
+/* }}} */
+
+int zfor_getaddrinfo2(const char *node, const char *service,
+					  const struct addrinfo *hints, struct addrinfo **res,
+					  int failback)
 /* {{{ */
 {
 	int rc;
@@ -149,8 +193,21 @@ int zfor_getaddrinfo(const char *node, const char *service,
 		freeaddrinfo(tmp_res);
 		return 0;
 	}
-	// ZFOR resolving failed, fall back to system original getaddrinfo()
-	return zfor_sys_getaddrinfo(node, service, hints, res);
+	// Failed to resolving host name through ZFOR service
+	if (failback) {
+		return zfor_sys_getaddrinfo(node, service, hints, res);
+	}
+
+	return EAI_NONAME;
+}
+
+/* }}} */
+
+int zfor_getaddrinfo(const char *node, const char *service,
+					 const struct addrinfo *hints, struct addrinfo **res)
+/* {{{ */
+{
+	return zfor_getaddrinfo2(node, service, hints, res, 1);
 }
 
 /* }}} */
@@ -158,26 +215,17 @@ int zfor_getaddrinfo(const char *node, const char *service,
 struct hostent *zfor_gethostbyname(const char *name)
 /* {{{ */
 {
-	struct hostent *h;
-
-	if ((h =
-		 zfor_lookup(name, &zfor_static_buf, sizeof(zfor_static_buf),
-					 &h_errno)) != NULL) {
-		// ZFOR resolving successful
-		return h;
-	}
-	// ZFOR resolving failed, fall back to system original gethostbyname()
-	return zfor_sys_gethostbyname(name);
+	return zfor_gethostbyname2(name, 1);
 }
 
 /* }}} */
 
 int zfor_getvconf(const char *vhost, const char *prop, char *buf,
-				   int maxbuflen)
+				  int maxbuflen)
 /* {{{ */
 {
-	char payload[4096];
-	char tmpbuf[4096];
+	char payload[ZFOR_MAX_BUF_LEN];
+	char tmpbuf[ZFOR_MAX_BUF_LEN];
 	int prop_len, vhost_len, payload_len;
 	int len;
 	struct sockaddr_in srvaddr;
@@ -280,21 +328,6 @@ int zfor_set_udp_timeout(int timeout)
 }
 
 /* }}} */
-
-/*
- * Define zfor_gethostbyname() to be an alias of gethostbyname(), in order to override
- * it by LD_PRELOAD
- * */
-struct hostent *gethostbyname(const char *name)
-	__attribute__ ((alias("zfor_gethostbyname")));
-
-/*
- * Define zfor_getaddrinfo() to be an alias of getaddrinfo(), in order to override
- * it by LD_PRELOAD
- * */
-int getaddrinfo(const char *node, const char *service,
-				const struct addrinfo *hints, struct addrinfo **res)
-	__attribute__ ((alias("zfor_getaddrinfo")));
 
 //////////////////////// Declarations //////////////////////////
 
@@ -414,7 +447,7 @@ static struct hostent *zfor_lookup(const char *name, void *resbuf,
 	struct in_addr addr;
 	in_addr_t *ap;
 	struct sockaddr_in srvaddr;
-	char buf[4096];
+	char buf[ZFOR_MAX_BUF_LEN];
 	int len;
 
 	// Don't resolve empty or too long host names
@@ -568,6 +601,49 @@ static int zfor_sync_call(struct sockaddr_in *host_and_port, int timeout,
 
 
 	return rc;
+}
+
+/* }}} */
+
+static struct hostent *zfor_hook_gethostbyname(const char *name)
+/* {{{ */
+{
+	return zfor_gethostbyname2(name, zfor_hook_failback);
+}
+
+/* }}} */
+
+static int zfor_hook_getaddrinfo(const char *node, const char *service,
+								 const struct addrinfo *hints,
+								 struct addrinfo **res)
+/* {{{ */
+{
+	return zfor_getaddrinfo2(node, service, hints, res,
+							 zfor_hook_failback);
+}
+
+/* }}} */
+
+/**
+ * ZFOR client library initializer, set cache variable according to env ctl vars.
+ * */
+static void __attribute__ ((constructor)) zfor_lib_init(void)
+/* {{{ */
+{
+	const char *hook_ctl = getenv(ZFOR_HOOK_CTL_ENV);
+
+	if (hook_ctl) {
+		if (!strncmp(hook_ctl, "nfb", 4)) {
+			// Using hook callback without failing back
+			zfor_hook_failback = 0;
+		} else {
+			// Default hook callback with failing back
+			zfor_hook_failback = 1;
+		}
+	} else {
+		// Default hook callback with failing back
+		zfor_hook_failback = 1;
+	}
 }
 
 /* }}} */

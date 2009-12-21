@@ -6,8 +6,8 @@
 #	/var/log/zfor/*		- zfor run-time log files
 summary: ZFOR is a fail-over name resolver.
 name: zfor
-version: 1.0.4
-release: 2
+version: 1.0.5
+release: 1
 url: http://code.google.com/p/zfor/
 vendor: Taobao <http://www.taobao.com>
 license: GPLv2
@@ -159,6 +159,10 @@ fi
 rm -rf %{buildroot}
 
 %changelog
+* Mon Dec 21 2009 qingwu <qingwu@taobao.com>
++ zfor-1.0.5-1
+- added controllable failback mode api
+
 * Sat Dec 19 2009 qingwu <qingwu@taobao.com>
 + zfor-1.0.4-2
 - modified php ini directory detection method

@@ -11,6 +11,7 @@ import java.util.List;
 
 public class zfor_client {
 
+	private static final int MAX_BUF_LEN = 4096;
 	private static final int DEFAULT_PORT = 1117;
 	private static final int DEFAULT_UDP_TIMEOUT = 100;
 	private static final int DEFAULT_MAX_HOSTADDRS = 16;
@@ -22,40 +23,62 @@ public class zfor_client {
 	private static int timeout = DEFAULT_UDP_TIMEOUT;
 	private static String host = DEFAULT_HOST;
 
+	private static byte[] zfor_sync_call(byte[] req) throws Exception {
+		DatagramSocket socket = new DatagramSocket();
+		DatagramPacket ds = new DatagramPacket(req, req.length, InetAddress
+				.getByName(host), port);
+		socket.send(ds);
+
+		socket.setSoTimeout(timeout);
+		byte[] buf = new byte[MAX_BUF_LEN];
+		ds = new DatagramPacket(buf, buf.length);
+		socket.receive(ds);
+		socket.close();
+		return ds.getData();
+	}
+
 	/*
 	 * 调用 ZFOR 服务解析给定的域名，若 ZFOR 服务调用未找到有效结果则返回系统自己的 gethostbyname 调用结果
 	 * 
 	 * @param virtual_host_name 待解析的域名字符串
+	 * @parma fail_back Whether falling back to system-wide DNS resolving API when ZFOR failed.
 	 */
-	public static List<String> zfor_gethostbyname(String virtual_host_name)
-			throws Exception {
-
-		if (virtual_host_name == null || virtual_host_name.equals("")
+	public static List<String> zfor_gethostbyname(String virtual_host_name, boolean fail_back)
+		throws Exception {
+		if (virtual_host_name == null
+				|| virtual_host_name.equals("")
 				|| virtual_host_name.length() > MAXHOSTNAMELEN) {
 			throw new Exception("不允许解析空主机名或超长主机名");
 		}
 		List<String> ips = new LinkedList<String>();
+		byte[] datas = null;
 		try {
-			byte[] buf = new byte[2048];
 			String send_msg = (ZFOR_CMD_DNS + virtual_host_name);
-			DatagramSocket socket = new DatagramSocket();
-			buf = send_msg.getBytes();
-			DatagramPacket ds = new DatagramPacket(buf, buf.length, InetAddress
-					.getByName(host), port);
-			socket.send(ds);
-			socket.setSoTimeout(timeout);
-			byte[] buf2 = new byte[1024];
-			ds = new DatagramPacket(buf2, buf2.length);
-			socket.receive(ds);
+			datas = zfor_sync_call(send_msg.getBytes());
+		} catch (Exception e) {
+			e.printStackTrace();
+			if(fail_back) {
+				// socket异常,试图使用系统的InetAddress.getByName解析
+				ips.clear();// 清空ipinfos
+				try {
+					String hostname = gethostbyname(virtual_host_name);
+					ips.add(hostname);
+					return ips;
+				} catch (Exception e1) {
+					// InetAddress.getByName解析仍出现异常,无法处理异常抛出
+					throw new Exception(
+							"socket异常,使用系统的InetAddress.getByName解析,仍出现异常", e1);
+				}
+			} else {
+				throw new Exception("Failed to resolving hostname through ZFOR", e);
+			}
+		}
 
-			byte[] datas = ds.getData();
+		int total = (int) datas[0]; // 取出的ip数量
 
-			int total = (int) datas[0]; // 取出的ip数量
-
-			// 若没有解析结果或数量不对则改用系统gethostbyname()接口解析
-			if (total == 0 || datas[total * 4 + 1] != 0 
-					|| total > DEFAULT_MAX_HOSTADDRS) {
-
+		// 若没有解析结果或数量不对则改用系统gethostbyname()接口解析
+		if (total == 0 || datas[total * 4 + 1] != 0 || total > DEFAULT_MAX_HOSTADDRS) {
+			if(fail_back) {
 				ips.clear();// 清空ipinfos
 				try {
 					String hostname = gethostbyname(virtual_host_name);
@@ -67,40 +90,32 @@ public class zfor_client {
 							"返回的解析数据没有结果或数量不对,使用系统的InetAddress.getByName解析,仍出现异常",
 							e1);
 				}
+			} else {
+				throw new Exception("Failed to resolving hostname through ZFOR");
 			}
+		}
 
-			// 按照网络字节序获得IP地址
-			for (int i = 0; i < total; i++) {
-				long a = (int) (datas[4 * i + 1] & 0xff);
-				int b = (int) (datas[4 * i + 2] & 0xff);
-				int c = (int) (datas[4 * i + 3] & 0xff);
-				int d = (int) (datas[4 * i + 4] & 0xff);
+		// 按照网络字节序获得IP地址
+		for (int i = 0; i < total; i++) {
+			long a = (int) (datas[4 * i + 1] & 0xff);
+			int b = (int) (datas[4 * i + 2] & 0xff);
+			int c = (int) (datas[4 * i + 3] & 0xff);
+			int d = (int) (datas[4 * i + 4] & 0xff);
 
-				String ip = a + "." + b + "." + c + "." + d;
+			String ip = a + "." + b + "." + c + "." + d;
 
-				ips.add(ip);
-			}
-			socket.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-			// socket异常,试图使用系统的InetAddress.getByName解析
-			ips.clear();// 清空ipinfos
-			try {
-				String hostname = gethostbyname(virtual_host_name);
-				ips.add(hostname);
-			} catch (Exception e1) {
-				// InetAddress.getByName解析仍出现异常,无法处理异常抛出
-				throw new Exception(
-						"socket异常,使用系统的InetAddress.getByName解析,仍出现异常", e1);
-			}
-			// throw new
-			// RuntimeException("socket异常,试图使用系统的InetAddress.getByName解析",e);
+			ips.add(ip);
 		}
 		return ips;
 	}
 
+	public static List<String> zfor_gethostbyname(String virtual_host_name)
+		throws Exception {
+		return zfor_gethostbyname(virtual_host_name, true);
+	}
+
 	public static String gethostbyname(String host_name)
-			throws UnknownHostException {
+		throws UnknownHostException {
 		InetAddress addrinfo = InetAddress.getByName(host_name);
 		return addrinfo.getHostAddress();
 	}

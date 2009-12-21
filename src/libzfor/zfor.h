@@ -11,22 +11,34 @@ extern "C" {
 #endif
 
 	/**
-	 * Replacement for gethostbyname() in system libc
+	 * ZFOR gethostbyname(), with failing back to system-wide gethostbyname().
 	 * */
 	struct hostent *zfor_gethostbyname(const char *name);
 
 	/**
-	 * Replacement for getaddrinfo() in system libc
+	 * ZFOR gethostbyname(), permit to choose whether fail back.
+	 * */
+	struct hostent *zfor_gethostbyname2(const char *name, int failback);
+
+	/**
+	 * ZFOR getaddrinfo(), with failing back to system-wide getaddrinfo().
 	 * */
 	int zfor_getaddrinfo(const char *node, const char *service,
 						 const struct addrinfo *hints,
 						 struct addrinfo **res);
 
 	/**
+	 * ZFOR getaddrinfo(), permit to choose whether fail back.
+	 * */
+	int zfor_getaddrinfo2(const char *node, const char *service,
+						  const struct addrinfo *hints,
+						  struct addrinfo **res, int failback);
+
+	/**
 	 * Get ZFOR config property for specified virtual hostname
 	 * */
 	int zfor_getvconf(const char *vhost, const char *prop, char *buf,
-					   int maxbuflen);
+					  int maxbuflen);
 
 	/**
 	 * Set UDP address (host-endian IPv4) of zfor server
@@ -46,7 +58,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-// vim600: noet ts=4 sw=4 fdm=marker
-// vim<600: noet ts=4 sw=4
+// vim600: noet ts=4 sw=4 fdm=marker// vim<600: noet ts=4 sw=4
 #endif

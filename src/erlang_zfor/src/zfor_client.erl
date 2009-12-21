@@ -3,7 +3,7 @@
 -include("zfor_log.hrl").
 -vsn("%VSN%").
 -compile([debug_info, bin_opt_info]).
--export([context/3, getaddr/2, getaddrs/2, getaddr_nfb/2, getaddrs_nfb/2, getvconf/3]).
+-export([context/3, getaddr/2, getaddrs/2, getaddr/3, getaddrs/3, getvconf/3]).
 
 %% ====================== Exported API =======================
 
@@ -32,27 +32,23 @@ context(Server, Port, Timeout) when is_list(Server), is_integer(Port), is_intege
 			| {'error', Reason :: term()}.
 
 getaddr(Ctx, Hostname) when is_record(Ctx, zfor_client_ctx), is_list(Hostname) ->
-	case getaddrs(Ctx, Hostname) of
-		{'ok', []} -> {'error', 'not_available'};
-		{'ok', [Addr | _]} -> {'ok', Addr};
-		{'error', Reason} -> {'error', Reason}
-	end.
+	getaddr(Ctx, Hostname, true).
 % }}}
 
 % @doc Resolve the given hostname (real/virtual) through ZFOR service, return the 1st entry.
-% (No fallback to system-wide DNS resolving facility).
-% @spec getaddr_nfb(Ctx :: zfor_client_ctx(), Hostname :: string()) ->
+% (Permit to choose whether faill back to system-wide DNS resolving facility).
+% @spec getaddr(Ctx :: zfor_client_ctx(), Hostname :: string(), Failback :: boolean()) ->
 %			{'ok', Address :: tuple()}
 %			| {'error', Reason :: term()}
 % @end
 % {{{
--spec getaddr_nfb(Ctx :: zfor_client_ctx(), Hostname :: string()) ->
+-spec getaddr(Ctx :: zfor_client_ctx(), Hostname :: string(), Failback :: boolean()) ->
 			{'ok', Address :: tuple()}
 			| {'error', Reason :: term()}.
 
-getaddr_nfb(Ctx, Hostname) when is_record(Ctx, zfor_client_ctx), is_list(Hostname) ->
-	case getaddrs_nfb(Ctx, Hostname) of
-		{'ok', []} -> {'error', 'not_available'};
+getaddr(Ctx, Hostname, Failback)
+	when is_record(Ctx, zfor_client_ctx), is_list(Hostname), is_boolean(Failback) ->
+	case getaddrs(Ctx, Hostname, Failback) of
 		{'ok', [Addr | _]} -> {'ok', Addr};
 		{'error', Reason} -> {'error', Reason}
 	end.
@@ -69,34 +65,39 @@ getaddr_nfb(Ctx, Hostname) when is_record(Ctx, zfor_client_ctx), is_list(Hostnam
 			| {'error', Reason :: term()}.
 
 getaddrs(Ctx, Hostname) when is_record(Ctx, zfor_client_ctx), is_list(Hostname) ->
-	case zfor_getaddrs(Ctx, Hostname) of
-		{'ok', Addrs = [_ | _]} -> {'ok', Addrs};
-		_ ->	% Not found in zfor server or error occured
-			?INFO("Failed to resolving hostname (~p) through zfor, fall-back to inet~n", [Hostname]),
-			case inet_getaddrs(Hostname) of
-				{'ok', []} -> {'error', 'not_available'};
-				{'ok', Addrs} -> {'ok', Addrs};
-				{'error', Reason} -> {'error', Reason}
-			end
-	end.
+	getaddrs(Ctx, Hostname, true).
 % }}}
 
 % @doc Resolve the given hostname (real/virtual) through ZFOR service, return all entries.
-% (No fallback to system-wide DNS resolving facility).
-% @spec getaddrs_nfb(Ctx :: zfor_client_ctx(), Hostname :: string()) ->
+% (Permit to choose whether faill back to system-wide DNS resolving facility).
+% @spec getaddrs(Ctx :: zfor_client_ctx(), Hostname :: string(), Failback :: boolean()) ->
 %			{'ok', AddrList :: [tuple()]}
 %			| {'error', Reason :: term()}
 % @end
 % {{{
--spec getaddrs_nfb(Ctx :: zfor_client_ctx(), Hostname :: string()) ->
+-spec getaddrs(Ctx :: zfor_client_ctx(), Hostname :: string(), Failback :: boolean()) ->
 			{'ok', AddrList :: [tuple()]}
 			| {'error', Reason :: term()}.
 
-getaddrs_nfb(Ctx, Hostname) when is_record(Ctx, zfor_client_ctx), is_list(Hostname) ->
+getaddrs(Ctx, Hostname, Failback)
+	when is_record(Ctx, zfor_client_ctx), is_list(Hostname), is_boolean(Failback) ->
 	case zfor_getaddrs(Ctx, Hostname) of
-		{'ok', []} -> {'error', 'not_available'};
 		{'ok', Addrs = [_ | _]} -> {'ok', Addrs};
-		{'error', Reason} -> {'error', Reason}
+		Other ->	% Not found in zfor server or error occured
+			case Failback of
+				true ->		% Fail back permitted
+					?INFO("Failed to resolving hostname (~p) through zfor, fall-back to inet~n", [Hostname]),
+					case inet_getaddrs(Hostname) of
+						{'ok', []} -> {'error', 'not_available'};
+						{'ok', Addrs} -> {'ok', Addrs};
+						{'error', Reason} -> {'error', Reason}
+					end;
+				false ->	% No fail back permitted
+					case Other of
+						{'ok', []} -> {'error', 'not_available'};
+						{'error', Reason} -> {'error', Reason}
+					end
+			end
 	end.
 % }}}
 
