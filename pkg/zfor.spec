@@ -16,7 +16,6 @@ provides: zfor
 source: zfor.tar.gz
 requires: erlang >= R11B
 
-%define _tmppath /tmp
 %define _prefix /usr/local
 %define ext_root %(php-config --extension-dir)
 %define ini_root %(php -i|grep "Scan"|perl -ane 'print $F[-1]')

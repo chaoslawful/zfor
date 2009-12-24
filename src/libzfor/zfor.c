@@ -362,6 +362,9 @@ static void *zfor_getsym(const char *name, void *skip)
 		if (!f || f == skip) {
 			void *l;
 
+			// NOTE: This requires a real shared library named "libc.so" can be
+			// found by ld.so. Most distributions make "/usr/lib/libc.so" a
+			// linker script which could not be used here, BE CAREFUL!
 			l = dlopen("libc.so", RTLD_LAZY);
 			if (l) {
 				f = dlsym(l, name);
