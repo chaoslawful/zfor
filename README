@@ -62,15 +62,45 @@ RELEASE STRUCTURE
 
 NOTES
 
-* In the latest libzfor.so, getaddrinfo() is intercepted and most program using this function should be able to working along with ZFOR by simply preloading libzfor.so. No more need to modifying code to resolve hostnames using zfor_gethostbyname() explicitly. For example:
+* In the latest libzfor.so, getaddrinfo() is intercepted and most program using
+this function should be able to working along with ZFOR by simply preloading
+libzfor.so. No more need to modifying code to resolve hostnames using
+zfor_gethostbyname() explicitly. For example:
 
 	$ LD_PRELOAD=/usr/local/lib/libzfor.so curl "http://a.zfor"
 
-But the CURL function in PHP with Suhosin security patch (like the one comes within Ubuntu-release) is an exception. The alternative way to make it working is preloading both libzfor.so and libcurl.so, as the following shows:
+But the CURL extension in PHP with RTLD_DEEPBIND flag enabled in dlopen (like
+		the one comes within Ubuntu-release) is an exception. The RTLD_DEEPBIND
+flag restricted symbol resolution scope to the extension and its dependencies.
+Because CURL extension doesn't depends libzfor.so explicitly, the getaddrinfo()
+alias provided by libzfor.so will not be considered while performing symbol
+resolving.
 
-	$ LD_PRELOAD="/usr/lib/libcurl.so /usr/local/lib/libzfor.so" php -r '$ch=curl_init("http://xx.zfor");curl_exec($ch);'
+One solution to make preloading libzfor.so working without modify PHP or the
+CURL extension, is preloading both libzfor.so and libcurl.so (the order doesn't
+		matter), as the following shows:
 
-* zfor_gethostbyname() / zfor_getaddrinfo() defaults to fail-back mode: when resolving failed through zfor service, turn to use system-wide DNS resolving APIs to do the job. You can use zfor_gethostbyname2() / zfor_getaddrinfo2() to control the fail-back behavior. When using preloading way, the fail-back mode can be controlled through environment variable ZFOR_HOOK_CTL, set it to "nfb" to use non-failback mode, and "fb" (which is default) to use failback mode, for example:
+	$ LD_PRELOAD="/usr/local/lib/libzfor.so /usr/lib/libcurl.so" \
+				  php -r '$ch=curl_init("http://xx.zfor");curl_exec($ch);'
+
+It's because shared library will only be loaded ONCE. As the preloaded
+libcurl.so already resolved getaddrinfo() symbol using the one provided by
+libzfor.so, the resolution scope restriction suffered in loading CURL extension
+no more affects the libzfor.so intercepting process.
+
+You can reference these threads for this problem:
+
+	- http://marc.info/?l=php-internals&m=116196463608982&w=2
+	- "The RTLD_DEEPBIND bug" section in
+	http://forge.continuent.org/pipermail/carob-commits/2007-August/001683.html
+
+* zfor_gethostbyname() / zfor_getaddrinfo() defaults to fail-back mode: when
+resolving failed through zfor service, turn to use system-wide DNS resolving
+APIs to do the job. You can use zfor_gethostbyname2() / zfor_getaddrinfo2() to
+control the fail-back behavior. When using preloading way, the fail-back mode
+can be controlled through environment variable ZFOR_HOOK_CTL, set it to "nfb"
+to use non-failback mode, and "fb" (which is default) to use failback mode, for
+example:
 
 	$ ZFOR_HOOK_CTL=nfb LD_PRELOAD=/usr/local/lib/libzfor.so curl "http://a.zfor"
 
