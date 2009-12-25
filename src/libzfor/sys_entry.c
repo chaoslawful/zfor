@@ -1,5 +1,6 @@
 #include "sys_entry.h"
 #include "hook.h"
+#include "util.h"
 
 typedef int (*ptr_to_getaddrinfo) (const char *node, const char *service,
 								   const struct addrinfo * hints,
