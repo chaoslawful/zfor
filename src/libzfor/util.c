@@ -119,8 +119,8 @@ int zfor_getvconf(const char *vhost, const char *prop, char *buf,
 
 /* }}} */
 
-struct hostent *zfor_lookup(const char *name, void *resbuf,
-							int resbuflen, int *errp)
+struct hostent *zfor_lookup(const char *name, void *resbuf, int resbuflen,
+							int *errp)
 /* {{{ */
 {
 	struct in_addr addr;
@@ -167,8 +167,8 @@ struct hostent *zfor_lookup(const char *name, void *resbuf,
 	srvaddr.sin_addr.s_addr = htonl(zfor_udp_addr);
 	srvaddr.sin_port = htons(zfor_udp_port);
 
-	len = zfor_make_req(buf, sizeof(buf),
-						ZFOR_CMD_DNS, name, strlen(name));
+	len =
+		zfor_make_req(buf, sizeof(buf), ZFOR_CMD_DNS, name, strlen(name));
 	if (len < 0) {
 		*errp = NETDB_INTERNAL;
 		errno = ENOMEM;

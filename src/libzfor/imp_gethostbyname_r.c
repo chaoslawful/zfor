@@ -1,8 +1,8 @@
-#include <netdb.h>
 #include <errno.h>
 #include <stdlib.h>
 #include "zfor.h"
 #include "util.h"
+#include "sys_entry.h"
 #include "imp_gethostbyname_r.h"
 
 int zfor_gethostbyname_r(const char *name, struct hostent *ret, char *buf,

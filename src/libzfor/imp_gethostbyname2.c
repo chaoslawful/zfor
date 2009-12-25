@@ -1,18 +1,18 @@
 #include <stdlib.h>
 #include "zfor.h"
 #include "util.h"
+#include "sys_entry.h"
 #include "imp_gethostbyname2.h"
 
 struct hostent *zfor_gethostbyname2(const char *name, int af)
 /* {{{ */
 {
-	// only support IPv4 address
+	// ZFOR only support IPv4 address
 	if (af == AF_INET) {
 		return zfor_gethostbyname(name);
 	}
 
-	h_errno = HOST_NOT_FOUND;
-	return NULL;
+	return zfor_sys_gethostbyname2(name, af);
 }
 
 /* }}} */
@@ -22,13 +22,12 @@ struct hostent *zfor_gethostbyname2i(const char *name, int af,
 									 int failback)
 /* {{{ */
 {
-	// only support IPv4 address
+	// ZFOR only support IPv4 address
 	if (af == AF_INET) {
 		return zfor_gethostbynamei(name, failback);
 	}
 
-	h_errno = HOST_NOT_FOUND;
-	return NULL;
+	return zfor_sys_gethostbyname2(name, af);
 }
 
 /* }}} */

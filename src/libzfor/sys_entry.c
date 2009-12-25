@@ -48,10 +48,8 @@ int zfor_sys_getaddrinfo(const char *node, const char *service,
 	static ptr_to_getaddrinfo origin;
 
 	if (!origin) {
-		origin =
-			(ptr_to_getaddrinfo) zfor_getsym("getaddrinfo",
-											 (void *)
-											 zfor_hook_getaddrinfo);
+		origin = (ptr_to_getaddrinfo) zfor_getsym("getaddrinfo", (void *)
+												  zfor_hook_getaddrinfo);
 	}
 	// 'origin' will never be NULL, because zfor_getsym() will abort() if that happens
 	return origin(node, service, hints, res);
@@ -91,8 +89,7 @@ struct hostent *zfor_sys_gethostbyname2(const char *name, int af)
 
 	if (!origin) {
 		origin =
-			(ptr_to_gethostbyname2) zfor_getsym("gethostbyname2",
-												(void *)
+			(ptr_to_gethostbyname2) zfor_getsym("gethostbyname2", (void *)
 												zfor_hook_gethostbyname2);
 	}
 	// 'origin' will never be NULL, because zfor_getsym() will abort() if that happens

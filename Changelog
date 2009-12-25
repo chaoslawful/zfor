@@ -1,20 +1,31 @@
+2009-12-25 Wang Xiaozhe <chaoslawful@gmail.com>
+	* added gethostbyname_r() interception
+	* added gethostbyname2() interception
+	* added gethostbyname2_r() interception
+	- Version: 1.0.6
+
 2009-12-21 Wang Xiaozhe <chaoslawful@gmail.com>
 	* added fail-back controllable api
+	- Version: 1.0.5
 
 2009-12-18 Wang Xiaozhe <chaoslawful@gmail.com>
 	* added getaddrinfo() interception
 	* added set zfor service address api
 	* added get virtual host config api
+	- Version: 1.0.4
 
 2009-9-18 Wang Xiaozhe <chaoslaful@gmail.com>
 	* added fixed and remote host list option
 	* added supporting of taobao config server
+	- Version: 1.0.3
 
 2009-6-14 Wang Xiaozhe <chaoslawful@gmail.com>
 	* added round-robin selecting method
+	- Version: 1.0.2
 
 2009-6-13 Chris Goffinet <cg@chrisgoffinet.com>
 	* fixed makefile for compiling under OSX
+	- Version: 1.0.1
 
 2009-3-26 Wang Xiaozhe <chaoslawful@gmail.com>
 	* initial release

@@ -127,3 +127,4 @@ extern int gethostbyname2_r(const char *name, int af, struct hostent *ret,
 
 // vim600: noet ts=4 sw=4 fdm=marker
 // vim<600: noet ts=4 sw=4
+
