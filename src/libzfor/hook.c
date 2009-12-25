@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "zfor.h"
 #include "hook.h"
+#include "util.h"
 
 //////////////////////// Forward Declarations //////////////////////////
 
