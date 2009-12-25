@@ -18,7 +18,7 @@ extern "C" {
 	/**
 	 * ZFOR gethostbyname(), permit to choose whether fail back.
 	 * */
-	struct hostent *zfor_gethostbyname2(const char *name, int failback);
+	struct hostent *zfor_gethostbynamei(const char *name, int failback);
 
 	/**
 	 * ZFOR getaddrinfo(), with failing back to system-wide getaddrinfo().
@@ -30,7 +30,7 @@ extern "C" {
 	/**
 	 * ZFOR getaddrinfo(), permit to choose whether fail back.
 	 * */
-	int zfor_getaddrinfo2(const char *node, const char *service,
+	int zfor_getaddrinfoi(const char *node, const char *service,
 						  const struct addrinfo *hints,
 						  struct addrinfo **res, int failback);
 

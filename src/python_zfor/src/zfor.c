@@ -19,7 +19,7 @@ zgethostbyname(PyObject *self, PyObject *args) {
 		return NULL;
 	}
 
-	hp=zfor_gethostbyname2(hostname, failback);
+	hp=zfor_gethostbynamei(hostname, failback);
 
 	if(!hp || !hp->h_addr_list || !*(hp->h_addr_list)) {
 		PyErr_SetString(zforError, "Name or service not known");
@@ -44,7 +44,7 @@ zgethostbynamel(PyObject *self, PyObject *args) {
 		return NULL;
 	}
 
-	hp=zfor_gethostbyname2(hostname, failback);
+	hp=zfor_gethostbynamei(hostname, failback);
 
 	if(!hp || !hp->h_addr_list || !*(hp->h_addr_list)) {
 		PyErr_SetString(zforError, "Name or service not known");

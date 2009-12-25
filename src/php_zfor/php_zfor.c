@@ -165,7 +165,7 @@ PHP_FUNCTION(zfor_gethostbyname)
 		return;
 	}
 
-	hp = zfor_gethostbyname2(hostname, (int) failback);
+	hp = zfor_gethostbynamei(hostname, (int) failback);
 
 	if (!hp || !hp->h_addr_list || !*(hp->h_addr_list)) {
 		RETURN_FALSE;
@@ -194,7 +194,7 @@ PHP_FUNCTION(zfor_gethostbynamel)
 		return;
 	}
 
-	hp = zfor_gethostbyname2(hostname, failback);
+	hp = zfor_gethostbynamei(hostname, failback);
 	if (!hp || !hp->h_addr_list) {
 		RETURN_FALSE;
 	}

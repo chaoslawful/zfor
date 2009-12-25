@@ -84,7 +84,7 @@ int getaddrinfo(const char *node, const char *service,
 
 //////////////////////// Exported API //////////////////////////
 
-struct hostent *zfor_gethostbyname2(const char *name, int failback)
+struct hostent *zfor_gethostbynamei(const char *name, int failback)
 /* {{{ */
 {
 	struct hostent *h;
@@ -104,7 +104,7 @@ struct hostent *zfor_gethostbyname2(const char *name, int failback)
 
 /* }}} */
 
-int zfor_getaddrinfo2(const char *node, const char *service,
+int zfor_getaddrinfoi(const char *node, const char *service,
 					  const struct addrinfo *hints, struct addrinfo **res,
 					  int failback)
 /* {{{ */
@@ -207,7 +207,7 @@ int zfor_getaddrinfo(const char *node, const char *service,
 					 const struct addrinfo *hints, struct addrinfo **res)
 /* {{{ */
 {
-	return zfor_getaddrinfo2(node, service, hints, res, 1);
+	return zfor_getaddrinfoi(node, service, hints, res, 1);
 }
 
 /* }}} */
@@ -215,7 +215,7 @@ int zfor_getaddrinfo(const char *node, const char *service,
 struct hostent *zfor_gethostbyname(const char *name)
 /* {{{ */
 {
-	return zfor_gethostbyname2(name, 1);
+	return zfor_gethostbynamei(name, 1);
 }
 
 /* }}} */
@@ -611,7 +611,7 @@ static int zfor_sync_call(struct sockaddr_in *host_and_port, int timeout,
 static struct hostent *zfor_hook_gethostbyname(const char *name)
 /* {{{ */
 {
-	return zfor_gethostbyname2(name, zfor_hook_failback);
+	return zfor_gethostbynamei(name, zfor_hook_failback);
 }
 
 /* }}} */
@@ -621,7 +621,7 @@ static int zfor_hook_getaddrinfo(const char *node, const char *service,
 								 struct addrinfo **res)
 /* {{{ */
 {
-	return zfor_getaddrinfo2(node, service, hints, res,
+	return zfor_getaddrinfoi(node, service, hints, res,
 							 zfor_hook_failback);
 }
 
