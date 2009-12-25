@@ -91,8 +91,8 @@ cp %{_builddir}/zfor/src/zfor/ebin/* %{buildroot}%{_prefix}/share/zfor/ebin/
 cp %{_builddir}/zfor/src/zfor/src/* %{buildroot}%{_prefix}/share/zfor/src/
 cp %{_builddir}/zfor/src/zfor/include/* %{buildroot}%{_prefix}/share/zfor/include/
 # install client library and header files
-cp %{_builddir}/zfor/src/libzfor/zfor_host %{buildroot}%{_prefix}/bin/zfor-host
-cp %{_builddir}/zfor/src/libzfor/zfor_prop %{buildroot}%{_prefix}/bin/zfor-prop
+cp %{_builddir}/zfor/src/libzfor/utils/zfor_host %{buildroot}%{_prefix}/bin/zfor-host
+cp %{_builddir}/zfor/src/libzfor/utils/zfor_prop %{buildroot}%{_prefix}/bin/zfor-prop
 cp %{_builddir}/zfor/src/libzfor/libzfor.so %{buildroot}%{_libdir}
 cp %{_builddir}/zfor/src/libzfor/zfor.h %{buildroot}%{_prefix}/include/
 # install php extension files

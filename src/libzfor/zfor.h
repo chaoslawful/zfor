@@ -21,6 +21,36 @@ extern "C" {
 	struct hostent *zfor_gethostbynamei(const char *name, int failback);
 
 	/**
+	 * ZFOR gethostbyname_r(), with failing back to system-wide gethostbyname_r().
+	 * */
+	int zfor_gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buflen, struct hostent **result, int *h_errnop);
+
+	/**
+	 * ZFOR gethostbyname_r(), permit to choose whether fail back.
+	 * */
+	int zfor_gethostbyname_ri(const char *name, struct hostent *ret, char *buf, size_t buflen, struct hostent **result, int *h_errnop, int failback);
+
+	/**
+	 * ZFOR gethostbyname2(), with failing back to system-wide gethostbyname2().
+	 * */
+	struct hostent *zfor_gethostbyname2(const char *name, int af);
+
+	/**
+	 * ZFOR gethostbyname2(), permit to choose whether fail back.
+	 * */
+	struct hostent *zfor_gethostbyname2i(const char *name, int af, int failback);
+
+	/**
+	 * ZFOR gethostbyname2_r(), with failing back to system-wide gethostbyname2_r().
+	 * */
+	int zfor_gethostbyname2_r(const char *name, int af, struct hostent *ret, char *buf, size_t buflen, struct hostent **result, int *h_errnop);
+
+	/**
+	 * ZFOR gethostbyname2_r(), permit to choose whether fail back.
+	 * */
+	int zfor_gethostbyname2_ri(const char *name, int af, struct hostent *ret, char *buf, size_t buflen, struct hostent **result, int *h_errnop, int failback);
+
+	/**
 	 * ZFOR getaddrinfo(), with failing back to system-wide getaddrinfo().
 	 * */
 	int zfor_getaddrinfo(const char *node, const char *service,
@@ -39,6 +69,12 @@ extern "C" {
 	 * */
 	int zfor_getvconf(const char *vhost, const char *prop, char *buf,
 					  int maxbuflen);
+
+	/**
+	 * Internal hostname resolving routine
+	 * */
+	struct hostent *zfor_lookup(const char *name, void *resbuf,
+								   int resbuflen, int *errp);
 
 	/**
 	 * Set UDP address (host-endian IPv4) of zfor server

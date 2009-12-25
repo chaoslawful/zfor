@@ -28,8 +28,8 @@ tgz:
 	cp ../src/libzfor/libzfor.so $(TMP_ROOT)/lib/; \
 	cp ../src/zfor/zfor.boot $(TMP_ROOT)/bin/; \
 	cp ../bin/* $(TMP_ROOT)/bin/; \
-	cp ../src/libzfor/zfor_host $(TMP_ROOT)/bin/zfor-host; \
-	cp ../src/libzfor/zfor_prop $(TMP_ROOT)/bin/zfor-prop; \
+	cp ../src/libzfor/utils/zfor_host $(TMP_ROOT)/bin/zfor-host; \
+	cp ../src/libzfor/utils/zfor_prop $(TMP_ROOT)/bin/zfor-prop; \
 	cp ../src/zfor/ebin/* $(TMP_ROOT)/share/zfor/ebin/; \
 	cp ../src/zfor/src/* $(TMP_ROOT)/share/zfor/src/; \
 	cp ../src/zfor/include/* $(TMP_ROOT)/share/zfor/include/; \

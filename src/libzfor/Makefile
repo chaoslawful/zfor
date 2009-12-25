@@ -10,28 +10,26 @@ else
 	LDFLAGS := -Wl,-rpath=$(PREFIX)/lib64 -Wl,-rpath=$(PREFIX)/lib -ldl
 endif
 
-all: libzfor.so zfor_host zfor_prop override benchmark
+all: libzfor.so
+	make -C utils
 
 .c.o:
 	$(CC) -c $(CCFLAGS) $^
 
-libzfor.so: zfor.o
+libzfor.so: \
+	hook.o \
+	util.o \
+	sys_entry.o \
+	imp_getaddrinfo.o \
+	imp_gethostbyname.o \
+	imp_gethostbyname_r.o \
+	imp_gethostbyname2.o \
+	imp_gethostbyname2_r.o
 	$(CC) $(LINK) $^ -o $@ $(LDFLAGS)
 
-zfor_host: zfor_host.o libzfor.so
-	$(CC) zfor_host.o -o $@ $(LDFLAGS) -L. -lzfor
-
-zfor_prop: zfor_prop.o libzfor.so
-	$(CC) zfor_prop.o -o $@ $(LDFLAGS) -L. -lzfor
-
-override: override.o
-	$(CC) $^ -o $@
-
-benchmark: benchmark.o libzfor.so
-	$(CC) benchmark.o -o $@ $(LDFLAGS)
-
 clean:
-	rm -f libzfor.so zfor_host zfor_prop override benchmark *.o
+	make -C utils clean
+	rm -f libzfor.so *.o
 
 .PHONY: all clean
 
