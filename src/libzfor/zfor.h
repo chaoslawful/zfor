@@ -107,5 +107,6 @@ extern "C" {
 }
 #endif
 #endif
-/* vim600: noet ts=4 sw=4 fdm=marker */
-/* vim<600: noet ts=4 sw=4 */
+// vim600: noet ts=4 sw=4 fdm=marker
+// vim<600: noet ts=4 sw=4
+
