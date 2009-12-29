@@ -2,23 +2,6 @@
 #include "hook.h"
 #include "util.h"
 
-typedef int (*ptr_to_getaddrinfo) (const char *node, const char *service,
-								   const struct addrinfo * hints,
-								   struct addrinfo ** res);
-typedef struct hostent *(*ptr_to_gethostbyname) (const char *name);
-typedef int (*ptr_to_gethostbyname_r) (const char *name,
-									   struct hostent * ret, char *buf,
-									   size_t buflen,
-									   struct hostent ** result,
-									   int *h_errnop);
-typedef struct hostent *(*ptr_to_gethostbyname2) (const char *name,
-												  int af);
-typedef int (*ptr_to_gethostbyname2_r) (const char *name, int af,
-										struct hostent * ret, char *buf,
-										size_t buflen,
-										struct hostent ** result,
-										int *h_errnop);
-
 /*
  * Call system-wide gethostbyname() to resolve specified hostname
  * */
