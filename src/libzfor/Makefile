@@ -1,15 +1,15 @@
 VER := $(shell grep Version ../../Changelog | head -1 | awk '{print $$3}')
 MAJOR := $(shell echo $(VER) | perl -ne 'print $$1 if /^(\d+)(\.\d+(\.\d+)?)?$$/')
 CC := gcc
-CCFLAGS := -g3 -O2 -fPIC
+CCFLAGS := -g3 -O2 -fPIC -pthread
 UNAME := $(shell uname)
 
 ifeq ($(UNAME), Darwin)
 	LINK := -dynamiclib
-	LDFLAGS := -Wl -ldl
+	LDFLAGS := -pthread -Wl -ldl
 else
 	LINK := -shared
-	LDFLAGS := -Wl,-rpath=$(PREFIX)/lib64 -Wl,-rpath=$(PREFIX)/lib -ldl
+	LDFLAGS := -pthread -Wl,-rpath=$(PREFIX)/lib64 -Wl,-rpath=$(PREFIX)/lib -ldl
 endif
 
 all: libzfor.so.$(VER)
