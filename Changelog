@@ -1,3 +1,9 @@
+2009-12-30 Wang Xiaozhe <chaoslawful@gmail.com>
+	* added library version to libzfor.so
+	* binary incompatible with previous version, need updating all c/php
+	clients
+	- Version: 1.0.7
+
 2009-12-25 Wang Xiaozhe <chaoslawful@gmail.com>
 	* added gethostbyname_r() interception
 	* added gethostbyname2() interception

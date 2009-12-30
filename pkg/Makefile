@@ -25,7 +25,7 @@ tgz:
 	mkdir -p $(TMP_DIR)/var/log/zfor; \
 	mkdir -p $(TMP_ROOT)/lib; \
 	mkdir -p $(TMP_ROOT)/include; \
-	cp ../src/libzfor/libzfor.so $(TMP_ROOT)/lib/; \
+	cp -P ../src/libzfor/libzfor.so* $(TMP_ROOT)/lib/; \
 	cp ../src/zfor/zfor.boot $(TMP_ROOT)/bin/; \
 	cp ../bin/* $(TMP_ROOT)/bin/; \
 	cp ../src/libzfor/utils/zfor_host $(TMP_ROOT)/bin/zfor-host; \

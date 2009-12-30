@@ -6,7 +6,7 @@
 #	/var/log/zfor/*		- zfor run-time log files
 summary: ZFOR is a fail-over name resolver.
 name: zfor
-version: 1.0.6
+version: 1.0.7
 release: 1
 url: http://code.google.com/p/zfor/
 vendor: Taobao <http://www.taobao.com>
@@ -93,7 +93,7 @@ cp %{_builddir}/zfor/src/zfor/include/* %{buildroot}%{_prefix}/share/zfor/includ
 # install client library and header files
 cp %{_builddir}/zfor/src/libzfor/utils/zfor_host %{buildroot}%{_prefix}/bin/zfor-host
 cp %{_builddir}/zfor/src/libzfor/utils/zfor_prop %{buildroot}%{_prefix}/bin/zfor-prop
-cp %{_builddir}/zfor/src/libzfor/libzfor.so %{buildroot}%{_libdir}
+cp -P %{_builddir}/zfor/src/libzfor/libzfor.so* %{buildroot}%{_libdir}
 cp %{_builddir}/zfor/src/libzfor/zfor.h %{buildroot}%{_prefix}/include/
 # install php extension files
 cp %{_builddir}/zfor/src/php_zfor/modules/zfor.so %{buildroot}%{ext_root}/
@@ -110,6 +110,7 @@ if [ "$1" = "1" ]; then
 	/sbin/chkconfig --add zfor
 	/sbin/chkconfig zfor on
 fi
+/sbin/ldconfig
 
 %preun
 # pre-uninstall for zfor main package
@@ -141,7 +142,7 @@ fi
 %{_prefix}/bin/zfor-host
 %{_prefix}/bin/zfor-prop
 %{_prefix}/include/zfor.h
-%{_prefix}/%{_lib}/libzfor.so
+%{_prefix}/%{_lib}/libzfor.so*
 
 %files -n php-zfor-client
 # files for php-zfor-client package
@@ -158,6 +159,11 @@ fi
 rm -rf %{buildroot}
 
 %changelog
+* Wed Dec 30 2009 qingwu <qingwu@taobao.com>
++ zfor-1.0.7-1
+- added version to libzfor.so
+- binary incompatible with previous versions, need updating all c/php clients
+
 * Fri Dec 25 2009 qingwu <qingwu@taobao.com>
 + zfor-1.0.6-1
 - added gethostbyname_r() interception
