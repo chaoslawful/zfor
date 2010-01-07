@@ -1,7 +1,15 @@
 % ZFOR工具函数
 -module(zfor_util).
 -include("zfor_common.hrl").
--export([dump_config/0, dump_health/0, pmap_timeout/3, consult_string/1, sleep/1, waitfor/2]).
+-export([
+		dump_config/0,
+		dump_health/0,
+		pmap_timeout/3,
+		consult_string/1,
+		sleep/1,
+		waitfor/2,
+		getaddr_v4/1
+	]).
 -compile([debug_info, bin_opt_info]).
 
 % 美观形式显示当前使用的配置数据
@@ -256,4 +264,13 @@ waitfor(T,Msg) ->
 		Msg -> {ok, Msg}
 	after T -> {error, timeout}
 	end.
+
+-spec getaddr_v4(Hostname::(tuple() | string())) -> {'ok', tuple()} | {'error', term()}.
+getaddr_v4({A, B, C, D}=IPv4) when A >= 0, A < 256, B >= 0, B < 256, C >= 0, C < 256, D >= 0, D < 256 -> {ok, IPv4};
+getaddr_v4(Hostname) when is_list(Hostname) ->
+	case inet_parse:ipv4_address(Hostname) of
+		{ok, IPv4} -> {ok, IPv4};
+		{error, _} -> inet:getaddr(Hostname, 'inet')
+	end;
+getaddr_v4(_) -> {error, einval}.
 

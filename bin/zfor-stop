@@ -6,6 +6,12 @@ if [ "$USER" != "nobody" ]; then
 	exit 1
 fi
 
+ZFOR_PROC=`ps axww|grep zfor|grep beam`
+if [ "$ZFOR_PROC" = "" ]; then
+	echo "ZFOR has been stopped already!"
+	exit 0
+fi
+
 ROOT=$(PREFIX)
 ERL=`which erl`
 ERL_NAME=zfor_admin@127.0.0.1
@@ -28,4 +34,12 @@ export HOME=$HOME_DIR
 $ERL -name $ERL_NAME -noshell -noinput \
 	-eval "rpc:call('$ZFORD_ERL_NAME',heart,set_cmd,[\"true\"])" \
 	-eval "rpc:call('$ZFORD_ERL_NAME',init,stop,[]), halt()"
+
+sleep 1
+
+ZFOR_PROC=`ps axww|grep zfor|grep beam`
+if [ "$ZFOR_PROC" != "" ]; then
+	echo "Failed to stop zfor in normal ways, force killing zfor now..."
+	killall -9 heart beam
+fi
 

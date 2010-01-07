@@ -6,7 +6,7 @@
 #	/var/log/zfor/*		- zfor run-time log files
 summary: ZFOR is a fail-over name resolver.
 name: zfor
-version: 1.0.7
+version: 1.0.8
 release: 1
 url: http://code.google.com/p/zfor/
 vendor: Taobao <http://www.taobao.com>
@@ -159,6 +159,12 @@ fi
 rm -rf %{buildroot}
 
 %changelog
+* Thu Jan 07 2010 qingwu <qingwu@taobao.com>
++ zfor-1.0.8-1
+- fixed name resolving bug
+- added zfor existence detection in start/stop scripts
+- changed default name resolving method
+
 * Wed Dec 30 2009 qingwu <qingwu@taobao.com>
 + zfor-1.0.7-1
 - added version to libzfor.so

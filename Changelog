@@ -1,3 +1,10 @@
+2010-01-07 Wang Xiaozhe <chaoslawful@gmail.com>
+	* fixed name resolving bug due to send IPv4 address string to
+	misbehavior nameserver
+	* added zfor process existence detection in start/stop scripts
+	* changed default name resolving method from 'native' to 'dns'
+	- Version: 1.0.8
+
 2009-12-30 Wang Xiaozhe <chaoslawful@gmail.com>
 	* added library version to libzfor.so
 	* binary incompatible with previous version, need updating all c/php

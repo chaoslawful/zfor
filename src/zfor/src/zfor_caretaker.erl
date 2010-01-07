@@ -432,7 +432,7 @@ make_vhost_stat(VHostname, HostStats, VHostConf) ->
 check_host_stat(Hostname, VHostConf) ->
 	DeadState = #host_stat{hostname = Hostname, state = 'dead'},
 	% 1. 解析主机域名为IPv4地址
-	case inet:getaddr(Hostname,inet) of
+	case zfor_util:getaddr_v4(Hostname) of
 		{ok, IP} ->
 			% 2. 根据主机健康检查方式选择不同的途径
 			CheckPort = VHostConf#vhost_conf.check_port,

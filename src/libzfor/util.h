@@ -1,7 +1,7 @@
 #ifndef ZFOR_UTIL_H__
 #define ZFOR_UTIL_H__
 
-#include <sys/param.h>			// for MAXHOSTNAMELEN
+#include <resolv.h>			// for MAXHOSTNAMELEN
 
 #define ZFOR_CMD_DNS 0
 #define ZFOR_CMD_GET_VCONF 1

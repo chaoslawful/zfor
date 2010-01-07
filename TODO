@@ -1,4 +1,3 @@
 * Complete documents (wikis on github)
-* Allow zfor client set target host
 * Change host-list implementation to reflect host-list modification to virtual host addresses in time, instead of update while the virtual host config changes
 

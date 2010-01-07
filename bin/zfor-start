@@ -6,6 +6,12 @@ if [ "$USER" != "nobody" ]; then
 	exit 1
 fi
 
+ZFOR_PROC=`ps axww|grep zfor|grep beam`
+if [ "$ZFOR_PROC" != "" ]; then
+	echo "ZFOR has been started already!"
+	exit 0
+fi
+
 ROOT=$(PREFIX)
 ERL=`which erl`
 RUN_ERL=`which run_erl`
