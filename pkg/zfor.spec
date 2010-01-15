@@ -6,7 +6,7 @@
 #	/var/log/zfor/*		- zfor run-time log files
 summary: ZFOR is a fail-over name resolver.
 name: zfor
-version: 1.0.8
+version: 1.0.9
 release: 1
 url: http://code.google.com/p/zfor/
 vendor: Taobao <http://www.taobao.com>
@@ -127,6 +127,7 @@ fi
 %{_prefix}/bin/zfor.boot
 %{_prefix}/bin/zfor-conf
 %{_prefix}/bin/zfor-shell
+%{_prefix}/bin/zfor-showlog
 %{_prefix}/bin/zfor-stat
 %{_prefix}/bin/zfor-start
 %{_prefix}/bin/zfor-stop
@@ -159,6 +160,11 @@ fi
 rm -rf %{buildroot}
 
 %changelog
+* Fri Jan 15 2010 qingwu <qingwu@taobao.com>
++ zfor-1.0.9-1
+- changed default DNS mode from [file,dns] back to [file,native]
+- added inet_gethost concurrent number to startup script
+
 * Thu Jan 07 2010 qingwu <qingwu@taobao.com>
 + zfor-1.0.8-1
 - fixed name resolving bug
