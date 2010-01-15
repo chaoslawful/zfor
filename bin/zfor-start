@@ -22,6 +22,7 @@ ZFORD_INETRC=/etc/zfor/zfor.inetrc
 ZFORD_LOGCONF=/etc/zfor/log.config
 ZFORD_CONFDIR=$ROOT/etc/zfor/
 ZFORD_BOOT=$ROOT/bin/zfor
+MAX_CON_DNS=10
 
 NEW_CWD=/tmp
 HOME_DIR=/etc/zfor
@@ -34,7 +35,7 @@ cd $NEW_CWD
 export HOME=$HOME_DIR
 
 # Set HEART_COMMAND environment variable for heart monitor
-export HEART_COMMAND="$ERL +K true -heart -name $ZFORD_ERL_NAME -pa $ERL_SEARCHPATH -config $ZFORD_LOGCONF -boot $ZFORD_BOOT -kernel inetrc '\"$ZFORD_INETRC\"' -zfor conf_path '\"$ZFORD_CONFDIR\"' -noshell -noinput"
+export HEART_COMMAND="$ERL +K true -heart -name $ZFORD_ERL_NAME -pa $ERL_SEARCHPATH -config $ZFORD_LOGCONF -boot $ZFORD_BOOT -kernel inetrc '\"$ZFORD_INETRC\"' -kernel gethost_poolsize $MAX_CON_DNS -zfor conf_path '\"$ZFORD_CONFDIR\"' -noshell -noinput"
 
 # Use run_erl to start up zfor server, in order to log stdout messages
 $RUN_ERL -daemon /tmp/ /var/log/zfor/ "$HEART_COMMAND"
