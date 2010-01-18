@@ -444,23 +444,41 @@ check_host_stat(Hostname, VHostConf) ->
 					Path = VHostConf#vhost_conf.http_path,
 					URL = lists:flatten(["http://", inet_parse:ntoa(IP), ":", integer_to_list(CheckPort), Path]),
 					Method = VHostConf#vhost_conf.http_method,
-					TmpHeaders = [{"User-Agent", ?REMOTE_HTTP_USERAGENT}],
+					TmpHeaders = [
+						{"User-Agent", ?REMOTE_HTTP_USERAGENT}
+					],
 					HostHeader = VHostConf#vhost_conf.http_host,
-					Headers = if
-						HostHeader =/= undefined -> [{"Host", HostHeader} | TmpHeaders];
-						true -> TmpHeaders
-					end,
 					Version = if
 						HostHeader =/= undefined -> "HTTP/1.1";
 						true -> "HTTP/1.0"
 					end,
-					% 尝试获取远程状态文件信息
-					case http:request(
-							Method,
-							{URL, Headers},
-							[{relaxed, true}, {version, Version}],
-							[]
-						) of
+					Headers = if
+						HostHeader =/= undefined -> [{"Host", HostHeader}, {"Connection", "close"} | TmpHeaders];
+						true -> TmpHeaders
+					end,
+					Req = zfor_httpclient:make_request(
+							IP,			% Addr (tuple)
+							CheckPort,	% Port (integer)
+							Method,		% HTTP method (atom)
+							Path,		% Path (string)
+							Version,	% HTTP version (string)
+							Headers,	% Request headers (list(tuple))
+							""			% Request body (string)
+							),
+					% Try to retrieve status information for physical hosts
+					% XXX: Here we use our own HTTP client module instead of inets:http_client,
+					% for the latter suffers DNS resolving problem when used in some corporation
+					% networks (in which all unknown domain names will be resolving into the same
+					% portal IP address). The real problem was the domain name resolving order
+					% used by inet:gethostbyname_tm/4. We can switch back to inets:http_client
+					% when that function is fixed.
+					case zfor_httpclient:request(Req) of
+%                    case http:request(
+%									  Method,
+%									  {URL, Headers},
+%									  [{relaxed, true}, {version, Version}],
+%									  []
+%									  ) of
 						{ok, {{_, Status, _}, _, _}} ->
 							case Status of
 								200 ->

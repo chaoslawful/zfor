@@ -23,7 +23,8 @@ SOURCES = \
 	zfor_main\
 	zfor_server\
 	zfor_sup\
-	zfor_util
+	zfor_util\
+	zfor_httpclient
 
 MODS = ${SOURCES:%=$(EBIN)/%.$(EMULATOR)} $(APP_TARGET) $(REL_TARGET)
 
