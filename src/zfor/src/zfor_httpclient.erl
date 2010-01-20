@@ -84,7 +84,7 @@ request(Req) ->
 					Req#http_req.path, " ",
 					Req#http_req.ver, "\r\n"
 					],
-			HTTPReqHeaders = [[F, V, "\r\n"] || {F,V} <- Req#http_req.headers],
+			HTTPReqHeaders = [[F, ": ", V, "\r\n"] || {F,V} <- Req#http_req.headers],
 			HTTPReq = [HTTPReqLine, HTTPReqHeaders, "\r\n", Req#http_req.body],
 			Result = case gen_tcp:send(Sock, HTTPReq) of
 				{error, SReason} -> {error, SReason};
