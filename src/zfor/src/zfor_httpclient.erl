@@ -54,17 +54,21 @@ make_request(Addr, Port, Method, Path, Version, Headers, Body) ->
 % @doc Make a HTTP request and returns responses.
 % @spec request(Req::#http_req{}) ->
 %	{ok,
-%		{Version::string(), Status::integer(), Reason::string()},
-%		[{Field::string(), Value::string()}],
-%		Body::string()
+%		{
+%			{Version::string(), Status::integer(), Reason::string()},
+%			[{Field::string(), Value::string()}],
+%			Body::string()
+%		}
 %	} | {error, Reason::term()}.
 % @end
 % {{{
 -spec request(Req::#http_req{}) ->
 	{ok,
-		{Version::string(), Status::integer(), Reason::string()},
-		[{Field::string(), Value::string()}],
-		Body::string()
+		{
+			{Version::string(), Status::integer(), Reason::string()},
+			[{Field::string(), Value::string()}],
+			Body::string()
+		}
 	} | {error, Reason::term()}.
 
 request(Req) ->
@@ -100,9 +104,11 @@ request(Req) ->
 % {{{
 -spec recv_http_resp(Sock::pid(), Buf::binary()) ->
 	{ok,
-		{Version::string(), Status::integer(), Reason::string()},
-		[{Field::string(), Value::string()}],
-		Body::string()
+		{
+			{Version::string(), Status::integer(), Reason::string()},
+			[{Field::string(), Value::string()}],
+			Body::string()
+		}
 	} | {error, Reason::term()}.
 
 recv_http_resp(Sock, Buf) ->
@@ -124,7 +130,7 @@ recv_http_resp(Sock, Buf) ->
 					integer_to_list(Min)
 					]),
 			% parse response headers and body
-			recv_http_header(Sock, {ok, {Ver, Code, Reason}, [], ""}, Rest);
+			recv_http_header(Sock, {ok, {{Ver, Code, Reason}, [], ""}}, Rest);
 		_ -> erlang:error("incorrect response")
 	end.
 % }}}
@@ -132,7 +138,7 @@ recv_http_resp(Sock, Buf) ->
 % @doc Receive and parse response headers and body
 % @end
 % {{{
-recv_http_header(Sock, {ok, {Ver, Code, Reason}, Headers, Body} = Res, Buf) ->
+recv_http_header(Sock, {ok, {{Ver, Code, Reason}, Headers, Body}} = Res, Buf) ->
 	case erlang:decode_packet(httph, Buf, []) of
 		{error, DReason} -> {error, DReason};
 		{more, _} ->
@@ -146,14 +152,14 @@ recv_http_header(Sock, {ok, {Ver, Code, Reason}, Headers, Body} = Res, Buf) ->
 			% process common response headers
 			Field = atom_to_list(FieldAtom),
 			NHeaders = [{Field, Value} | Headers],
-			recv_http_header(Sock, {ok, {Ver, Code, Reason}, NHeaders, Body}, Rest);
+			recv_http_header(Sock, {ok, {{Ver, Code, Reason}, NHeaders, Body}}, Rest);
 		{ok, {http_header, _, Field, _, Value}, Rest} when is_list(Field) ->
 			% process customized response headers
 			NHeaders = [{Field, Value} | Headers],
-			recv_http_header(Sock, {ok, {Ver, Code, Reason}, NHeaders, Body}, Rest);
+			recv_http_header(Sock, {ok, {{Ver, Code, Reason}, NHeaders, Body}}, Rest);
 		{ok, http_eoh, Rest} ->
 			% HTTP header part end, the rest is body data
-			{ok, {Ver, Code, Reason}, lists:reverse(Headers), binary_to_list(recv_http_body(Sock, [Rest]))}
+			{ok, {{Ver, Code, Reason}, lists:reverse(Headers), binary_to_list(recv_http_body(Sock, [Rest]))}}
 	end.
 % }}}
 
