@@ -9,6 +9,7 @@ DIALYZER_OPT = -c --src \
 			   --dump_callgraph /tmp/zfor_callgraph.dot
 
 ERL_COMPILE_FLAGS += \
+	-smp \
 	-DDEBUG \
 	+warn_unused_vars +warn_shadow_vars +warn_unused_import \
 	+debug_info \
