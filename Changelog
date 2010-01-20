@@ -1,3 +1,15 @@
+2010-01-20 Wang Xiaozhe <chaoslawful@gmail.com>
+	* added customized http client to work around DNS resolving order problem
+	in ERTS
+	* default compile zfor into smp HiPE native code
+	* changed default DNS mode from [file,native] to [file,dns]
+	- Version: 1.0.10
+
+2010-01-15 Wang Xiaozhe <chaoslawful@gmail.com>
+	* changed default DNS mode from [file,dns] back to [file,native]
+	* added inet_gethost concurrent number to startup script
+	- Version: 1.0.9
+
 2010-01-07 Wang Xiaozhe <chaoslawful@gmail.com>
 	* fixed name resolving bug due to send IPv4 address string to
 	misbehavior nameserver
