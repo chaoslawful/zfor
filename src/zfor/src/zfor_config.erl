@@ -232,6 +232,11 @@ scan_remote_conf(Urls, LastUpdate) ->
 	Results = zfor_util:pmap_timeout(
 			fun (Url) ->
 				% 检查HTTP配置文件是否更改时还是用HTTP/1.1请求，以方便配置服务器使用虚拟主机
+				% XXX: Note the wrongly resolved IP, due to the leaky in ERTS DNS resolving order,
+				% may cause serious problems in a prod-network where all unknown domains will
+				% be resolved to a portal IP. For most central-controled ZFOR config server
+				% have formal domain names, using http:request/? here should be OK. But that will
+				% not be the case if remote config files needs to be accessed by IP.
 				http:request(
 						'head',
 						{
@@ -448,6 +453,11 @@ temp_read_remote_conf(Urls, State) ->
 	Results = zfor_util:pmap_timeout(
 			fun (Url) ->
 				% 读取HTTP配置文件的请求还是用HTTP/1.1，以方便配置服务器使用虚拟主机
+				% XXX: Note the wrongly resolved IP, due to the leaky in ERTS DNS resolving order,
+				% may cause serious problems in a prod-network where all unknown domains will
+				% be resolved to a portal IP. For most central-controled ZFOR config server
+				% have formal domain names, using http:request/? here should be OK. But that will
+				% not be the case if remote config files needs to be accessed by IP.
 				http:request(
 					'get',
 					{Url, [{"User-Agent", ?REMOTE_HTTP_USERAGENT}]},

@@ -1,3 +1,13 @@
+2010-02-03 Wang Xiaozhe <chaoslawful@gmail.com>
+	* use zfor_httpclient to fetch config server host list, to work around DNS
+	resolving order problem in Erlang
+	- Version: 1.0.10
+
+2010-01-15 Wang Xiaozhe <chaoslawful@gmail.com>
+	* changed default DNS mode from [file,dns] back to [file,native]
+	* added inet_gethost concurrent number to startup script
+	- Version: 1.0.9
+
 2010-01-07 Wang Xiaozhe <chaoslawful@gmail.com>
 	* fixed name resolving bug due to send IPv4 address string to
 	misbehavior nameserver

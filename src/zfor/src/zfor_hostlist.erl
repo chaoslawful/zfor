@@ -76,17 +76,37 @@ store_result_to_dict([{Name, _} | R1], [{error, _} | R2], Dict) -> store_result_
 %	192.168.212.171:12200?CLIENTRETRYCONNECTIONTIMES=3&CLIENTRETRYCONNECTIONTIMEOUT=1000&_SERIALIZETYPE=hessian&_IDLETIMEOUT=600&_TIMEOUT=3000
 -spec fetch_and_parse_host_list(ConfSrvHostList :: tuple()) -> [string()].
 fetch_and_parse_host_list({_, {'confsrv', {Cmd, DatId, GrpId, SrvHost}}}) ->
-	Url = lists:flatten(["http://", SrvHost, "/?command=", Cmd, "&dataId=", DatId, "&groupId=", GrpId]),
-	{'ok', {{_, 200, _}, _, Body}} = http:request(
-			'get',
-			{Url, [{"User-Agent", ?REMOTE_HTTP_USERAGENT}]},
-			[{timeout, ?REMOTE_HTTP_TIMEOUT}, {relaxed, true}],
-			[]),
-	Lines = string:tokens(Body, "\n"),
-	Hosts = lists:map(fun (Line) ->
-			HostAndPort = hd(string:tokens(Line, "?")),
-			Host = hd(string:tokens(HostAndPort, ":")),
-			Host
-			end, Lines),
-	Hosts.
+	{Host, Port} = case string:tokens(SrvHost, ":") of
+		[H, P] -> {H, list_to_integer(P)};
+		[H] -> {H, 80}
+	end,
+	case zfor_util:getaddr_v4(Host) of
+		{ok, IP} ->
+			Req = zfor_httpclient:make_request(
+				IP,
+				Port,
+				'get',
+				lists:flatten(["/?command=", Cmd, "&dataId=", DatId, "&groupId=", GrpId]),
+				"HTTP/1.0",
+				[{"User-Agent", ?REMOTE_HTTP_USERAGENT}],
+				""
+			),
+			{ok, {{_, 200, _}, _, Body}} = zfor_httpclient:request(Req),
+%			Url = lists:flatten(["http://", SrvHost, "/?command=", Cmd, "&dataId=", DatId, "&groupId=", GrpId]),
+%			{'ok', {{_, 200, _}, _, Body}} = http:request(
+%					'get',
+%%					{Url, [{"User-Agent", ?REMOTE_HTTP_USERAGENT}]},
+%					[{timeout, ?REMOTE_HTTP_TIMEOUT}, {relaxed, true}],
+%					[]),
+			Lines = string:tokens(Body, "\n"),
+			Hosts = lists:map(fun (Line) ->
+					HostAndPort = hd(string:tokens(Line, "?")),
+					Host = hd(string:tokens(HostAndPort, ":")),
+					Host
+					end, Lines),
+			Hosts;
+		{error, Reason} ->
+			?WARN_LOG("Failed to resolve config server host ~p : ~p", [Host, Reason]),
+			[]
+	end.
 
