@@ -1,6 +1,13 @@
 2010-02-03 Wang Xiaozhe <chaoslawful@gmail.com>
 	* use zfor_httpclient to fetch config server host list, to work around DNS
 	resolving order problem in Erlang
+	- Version: 1.0.11
+
+2010-01-20 Wang Xiaozhe <chaoslawful@gmail.com>
+	* added customized http client to work around DNS resolving order problem
+	in ERTS
+	* default compile zfor into smp HiPE native code
+	* changed default DNS mode from [file,native] to [file,dns]
 	- Version: 1.0.10
 
 2010-01-15 Wang Xiaozhe <chaoslawful@gmail.com>
