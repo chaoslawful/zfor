@@ -14,13 +14,13 @@ license: GPLv2
 group: Applications/System
 provides: zfor
 source: zfor.tar.gz
-requires: erlang >= R11B
+requires: erlang >= R13B
 
 %define _prefix /usr/local
 %define ext_root %(php-config --extension-dir)
 %define ini_root %(php -i|grep "Scan"|perl -ane 'print $F[-1]')
 
-buildrequires: erlang >= R11B, php-devel >= 5.0.0
+buildrequires: erlang >= R13B, php-devel >= 5.0.0
 buildroot: %{_tmppath}/%{name}-%{version}-%(%{__id} -u)
 
 %package -n zfor-client
@@ -35,7 +35,7 @@ requires: zfor-client = %{version}-%{release}, php >= 5.0.0
 %package -n erlang-zfor-client
 summary: ZFOR Erlang client
 group: Applications/System
-requires: erlang >= R11B
+requires: erlang >= R13B
 
 %description
 ZFOR is a virtual hostname resolver that supports health checking and
