@@ -1,3 +1,7 @@
+2010-02-05 Wang Xiaozhe <chaoslawful@gmail.com>
+	* changed zfor_httpclient to recognize content-length header
+	- Version: 1.0.11
+
 2010-01-20 Wang Xiaozhe <chaoslawful@gmail.com>
 	* added customized http client to work around DNS resolving order problem
 	in ERTS

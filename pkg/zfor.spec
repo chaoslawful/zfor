@@ -6,7 +6,7 @@
 #	/var/log/zfor/*		- zfor run-time log files
 summary: ZFOR is a fail-over name resolver.
 name: zfor
-version: 1.0.10
+version: 1.0.11
 release: 1
 url: http://code.google.com/p/zfor/
 vendor: Taobao <http://www.taobao.com>
@@ -160,6 +160,10 @@ fi
 rm -rf %{buildroot}
 
 %changelog
+* Fri Feb 05 2010 qingwu <qingwu@taobao.com>
++ zfor-1.0.11-1
+- changed zfor_httpclient to recognize content-length header
+
 * Wed Jan 20 2010 Wang Xiaozhe <chaoslawful@gmail.com>
 + zfor-1.0.10-1
 - added customized http client to work around DNS resolving order problem in
