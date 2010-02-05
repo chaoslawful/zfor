@@ -159,20 +159,34 @@ recv_http_header(Sock, {ok, {{Ver, Code, Reason}, Headers, Body}} = Res, Buf) ->
 			recv_http_header(Sock, {ok, {{Ver, Code, Reason}, NHeaders, Body}}, Rest);
 		{ok, http_eoh, Rest} ->
 			% HTTP header part end, the rest is body data
-			{ok, {{Ver, Code, Reason}, lists:reverse(Headers), binary_to_list(recv_http_body(Sock, [Rest]))}}
+			ContentLength = case lists:keyfind("Content-Length", 1, Headers) of
+				{_, Val} -> list_to_integer(Val);
+				false -> 0
+			end,
+			{ok,
+				{
+					{Ver, Code, Reason},
+					lists:reverse(Headers),
+					if	ContentLength > 0 ->
+							binary_to_list(recv_http_body(Sock, ContentLength - byte_size(Rest), [Rest]));
+						true ->
+							<<>>
+					end
+				}
+			}
 	end.
 % }}}
 
 % @doc Receive response body.
-% XXX Use a simple and stupid way to determine when to stop:
-% 	1. continue if there's more data
-%	2. stop if no more data come in after 100 ms
 % @end
 % {{{
-recv_http_body(Sock, LB) ->
-	case gen_tcp:recv(Sock, 0, 100) of
-		{ok, B} -> recv_http_body(Sock, [B | LB]);
-		_ -> iolist_to_binary(lists:reverse(LB))
+recv_http_body(_, N, LB) when N =< 0 ->
+	iolist_to_binary(lists:reverse(LB));
+
+recv_http_body(Sock, RLen, LB) ->
+	case gen_tcp:recv(Sock, 0) of
+		{ok, B} -> recv_http_body(Sock, RLen - byte_size(B), [B | LB]);
+		_ -> recv_http_body(Sock, 0, LB)
 	end.
 % }}}
 

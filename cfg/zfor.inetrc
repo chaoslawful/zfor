@@ -8,5 +8,6 @@
 {retry,2}. 	% Retry at most 2 times while resolving names
 {lookup,[file,dns]}. 	% Set name resolving sequence: first search /etc/hosts, then ERTS DNS, don't use libc calls directly. Performance better than libc calls.
 %{lookup,[file,native]}.    % Set name resolving sequence: first search /etc/hosts, then libc DNS call. This is more reliable than using ERTS DNS call when the nameserver resolving all unknown hostnames to a default address (veeery ugly, but common in many enterprise networks:( )
+%{lookup,[ipstring,file,dns]}.
 % vim:ft=erlang ts=4 sw=4
 
