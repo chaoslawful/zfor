@@ -16,7 +16,7 @@ java:
 pkg:
 	#	$(MAKE) PREFIX=$(PREFIX) -C pkg
 	rm -rf build; \
-	mkdir -p build/{BUILD,RPMS,SOURCES,SPECS,SRPMS}; \
+	mkdir -p build/BUILD build/RPMS build/SOURCES build/SPECS build/SRPMS; \
 	export builddir=$(shell pwd)/build; \
 	export cwd=$(shell basename `pwd`); \
 	cd ..; \
