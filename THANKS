@@ -1,7 +1,7 @@
-================================================================
- Thanks to all of the following for their valuable suggestions
- or contributions.
-================================================================
+==============================================================================
+ Thanks to all of the following individuals for their valuable suggestions or
+ contributions.
+==============================================================================
 
 Chris Goffinet (lenn0x) <cg@chrisgoffinet.com>
 	- fixed makefile for compiling zfor under OSX

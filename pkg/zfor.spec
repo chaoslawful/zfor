@@ -8,7 +8,7 @@ summary: ZFOR is a fail-over name resolver.
 name: zfor
 version: 1.0.11
 release: 1
-url: http://code.google.com/p/zfor/
+url: http://github.com/chaoslawful/zfor
 vendor: Taobao <http://www.taobao.com>
 license: GPLv2
 group: Applications/System
@@ -24,7 +24,7 @@ buildrequires: erlang >= R13B, php-devel >= 5.0.0
 buildroot: %{_tmppath}/%{name}-%{version}-%(%{__id} -u)
 
 %package -n zfor-client
-summary: ZFOR client library and header files
+summary: ZFOR C client library and header files
 group: Development/Libraries
 
 %package -n php-zfor-client
@@ -38,15 +38,15 @@ group: Applications/System
 requires: erlang >= R13B
 
 %description
-ZFOR is a virtual hostname resolver that supports health checking and
-load-balancing. It could be used to take over some VIP works.
+ZFOR is a virtual hostname resolver that supports both health checking and
+load-balancing. It could be used to take some works away from VIP.
 
 %description -n zfor-client
-This package contains the library and  header files needed for developing
+This package contains the C library and header files needed for developing
 applications with ZFOR.
 
 %description -n php-zfor-client
-This package contains the PHP extension for ZFOR.
+This package contains the PHP client extension for ZFOR.
 
 %description -n erlang-zfor-client
 This package contains Erlang client module for ZFOR.

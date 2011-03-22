@@ -1,34 +1,34 @@
 NAME
-	ZFOR - Z Fail-Over Resolver
+    ZFOR - Z Fail-Over Resolver
 
 DESCRIPTION
-	ZFOR is a virtual hostname resolver that supports health checking and
-	load-balancing. It could be used to take over some VIP works.
+    ZFOR is a virtual hostname resolver that supports health checking and
+    load-balancing. It could be used to take over some VIP works.
 
 COMPILE ZFOR
 
 * Prerequsite: erlang(>=R11B), gcc(>=3.4), (optional) php(>=5.2), alien
 * Steps:
-	0. MAKE SURE TO change the content of cfg/erlang.cookie
-	1. make PREFIX=/usr/local (Compiling zfor server and client library)
-	2. (optional) make PREFIX=/usr/local ext (Compiling PHP extension)
-	3. make PREFIX=/usr/local pkg (Make zfor server package)
-	4. (optional) make PREFIX=/usr/local ext-pkg (Make zfor PHP package)
+    0. MAKE SURE TO change the content of cfg/erlang.cookie
+    1. make PREFIX=/usr/local (Compiling zfor server and client library)
+    2. (optional) make PREFIX=/usr/local ext (Compiling PHP extension)
+    3. make PREFIX=/usr/local pkg (Make zfor server package)
+    4. (optional) make PREFIX=/usr/local ext-pkg (Make zfor PHP package)
 
 
 INSTALL ZFOR
 
 * For .tgz package:
-	1. sudo tar -xzpPf zfor*.tgz
-	2. (optional) sudo tar -xzpPf php-zfor*.tgz
+    1. sudo tar -xzpPf zfor*.tgz
+    2. (optional) sudo tar -xzpPf php-zfor*.tgz
 
 * For .deb package:
-	1. sudo dpkg -i zfor*.deb
-	2. (optional) sudo dpkg -i php-zfor*.deb
+    1. sudo dpkg -i zfor*.deb
+    2. (optional) sudo dpkg -i php-zfor*.deb
 
 * For .rpm package:
-	1. sudo rpm -Uvh zfor*.rpm
-	2. (optional) sudo rpm -Uvh php-zfor*.rpm
+    1. sudo rpm -Uvh zfor*.rpm
+    2. (optional) sudo rpm -Uvh php-zfor*.rpm
 
 
 ZFOR ADMIN
@@ -43,45 +43,45 @@ ZFOR ADMIN
 
 RELEASE STRUCTURE
 
-	$(PREFIX) 					- Release root (default to /usr/local/)
-		+- bin/ 				- Contains all zfor executable/script files
-		+- lib/ 				- Contains libzfor.so
-		+- include/ 			- Contains libzfor header files
-		+- share/
-			+- zfor/
-				+- ebin/ 		- Contains zfor server beam files
-				+- src/ 		- Contains zfor server source files
-				+- include/ 	- Contains zfor server common header files
-		+- logs/
-			+- zfor/ 			- zfor server runtime logging files places here
-		+- conf/
-			+- zfor/ 			- ERTS setting files for zfor server places here
-		+- etc/
-			+- zfor/ 			- zfor virtual host config files places here
+    $(PREFIX)                     - Release root (default to /usr/local/)
+        +- bin/                 - Contains all zfor executable/script files
+        +- lib/                 - Contains libzfor.so
+        +- include/             - Contains libzfor header files
+        +- share/
+            +- zfor/
+                +- ebin/         - Contains zfor server beam files
+                +- src/         - Contains zfor server source files
+                +- include/     - Contains zfor server common header files
+        +- logs/
+            +- zfor/             - zfor server runtime logging files places here
+        +- conf/
+            +- zfor/             - ERTS setting files for zfor server places here
+        +- etc/
+            +- zfor/             - zfor virtual host config files places here
 
 
 NOTES
 
-* In the latest libzfor.so, getaddrinfo() is intercepted and most program using
+In the latest libzfor.so, getaddrinfo() is intercepted and most program using
 this function should be able to working along with ZFOR by simply preloading
 libzfor.so. No more need to modifying code to resolve hostnames using
 zfor_gethostbyname() explicitly. For example:
 
-	$ LD_PRELOAD=/usr/local/lib/libzfor.so curl "http://a.zfor"
+    $ LD_PRELOAD=/usr/local/lib/libzfor.so curl "http://a.zfor"
 
-But the CURL extension in PHP with RTLD_DEEPBIND flag enabled in dlopen (like
-		the one comes within Ubuntu-release) is an exception. The RTLD_DEEPBIND
-flag restricted symbol resolution scope to the extension and its dependencies.
+But an exception is the CURL extension in PHP with RTLD_DEEPBIND flag enabled
+in dlopen (such as the one comes within Ubuntu-release). The RTLD_DEEPBIND flag
+restricted symbol resolution scope to the extension and its dependencies.
 Because CURL extension doesn't depends libzfor.so explicitly, the getaddrinfo()
 alias provided by libzfor.so will not be considered while performing symbol
 resolving.
 
 One solution to make preloading libzfor.so working without modify PHP or the
-CURL extension, is preloading both libzfor.so and libcurl.so (the order doesn't
-		matter), as the following shows:
+CURL extension, is preloading both libzfor.so and libcurl.so at one time. The
+appearance order doesn't matter. For example:
 
-	$ LD_PRELOAD="/usr/local/lib/libzfor.so /usr/lib/libcurl.so" \
-				  php -r '$ch=curl_init("http://xx.zfor");curl_exec($ch);'
+    $ LD_PRELOAD="/usr/local/lib/libzfor.so /usr/lib/libcurl.so" \
+        php -r '$ch=curl_init("http://xx.zfor");curl_exec($ch);'
 
 It's because shared library will only be loaded ONCE. As the preloaded
 libcurl.so already resolved getaddrinfo() symbol using the one provided by
@@ -90,9 +90,9 @@ no more affects the libzfor.so intercepting process.
 
 You can reference these threads for this problem:
 
-	- http://marc.info/?l=php-internals&m=116196463608982&w=2
-	- "The RTLD_DEEPBIND bug" section in
-	http://forge.continuent.org/pipermail/carob-commits/2007-August/001683.html
+    - http://marc.info/?l=php-internals&m=116196463608982&w=2
+    - "The RTLD_DEEPBIND bug" section in
+    http://forge.continuent.org/pipermail/carob-commits/2007-August/001683.html
 
 * zfor_gethostbyname() / zfor_getaddrinfo() defaults to fail-back mode: when
 resolving failed through zfor service, turn to use system-wide DNS resolving
@@ -102,42 +102,42 @@ can be controlled through environment variable ZFOR_HOOK_CTL, set it to "nfb"
 to use non-failback mode, and "fb" (which is default) to use failback mode, for
 example:
 
-	$ ZFOR_HOOK_CTL=nfb LD_PRELOAD=/usr/local/lib/libzfor.so curl "http://a.zfor"
+    $ ZFOR_HOOK_CTL=nfb LD_PRELOAD=/usr/local/lib/libzfor.so curl "http://a.zfor"
 
 AUTHORS
-	Xiaozhe Wang (chaoslawful [at] gmail [dot] com)
+    chaoslawful (王晓哲) (chaoslawful [at] gmail [dot] com)
 
 LICENSE AND COPYRIGHT
-	ZFOR is licensed under the GPLv2 License
+    ZFOR is licensed under the BSD License
 
-	Copyright (c) 2008, Yahoo! China Platform Works, Alibaba Inc. All
-	rights reserved.
+    Copyright (c) 2008, Yahoo! China Platform Works, Alibaba Inc. All
+    rights reserved.
 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are
-	met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are
+    met:
 
-	*   Redistributions of source code must retain the above copyright
-	notice, this list of conditions and the following disclaimer.
+    *   Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
 
-	*   Redistributions in binary form must reproduce the above copyright
-	notice, this list of conditions and the following disclaimer in the
-	documentation and/or other materials provided with the distribution.
+    *   Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
 
-	*   Neither the name of the Yahoo! China EEEE Works, Alibaba Inc. nor
-	the names of its contributors may be used to endorse or promote
-	products derived from this software without specific prior written
-	permission.
+    *   Neither the name of the Yahoo! China EEEE Works, Alibaba Inc. nor
+    the names of its contributors may be used to endorse or promote
+    products derived from this software without specific prior written
+    permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-	IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-	TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-	PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
-	OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-	EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-	PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+    IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+    TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+    PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+    OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+    EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+    PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+    PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
