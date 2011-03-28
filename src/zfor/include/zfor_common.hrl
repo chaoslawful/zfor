@@ -47,7 +47,7 @@
 -define(DEFAULT_VHOST_FAILURE_RESPONSE, 'none').
 
 % @type datetime() Date-time struct as returned by erlang:localtime/0.
--type datetime()::{date(), time()}.
+-type datetime()::{{integer(),integer(),integer()}, {integer(),integer(),integer()}}.
 
 % @type server_state() ZFOR service state struct.
 -record(server_state,
