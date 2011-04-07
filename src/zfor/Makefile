@@ -28,7 +28,8 @@ test_compile: subdirs
 
 test_do: test_compile
 	mkdir -p log
-	${RUN_TEST_CMD} -I$(INCLUDE) -pa $(ROOT)/ebin -logdir log -spec test.spec -cover test/zfor.coverspec
+	#${RUN_TEST_CMD} -I$(INCLUDE) -pa $(ROOT)/ebin -logdir log -spec test.spec -cover test/zfor.coverspec
+	erl -s ct_run script_start -s erlang halt -I$(INCLUDE) -pa $(ROOT)/ebin -logdir log -spec test.spec -cover test/zfor.coverspec
 
 test.spec: test.spec.in
 	cat test.spec.in | sed -e "s,@PATH@,$(PWD)," > $(PWD)/test.spec
