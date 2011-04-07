@@ -1,0 +1,45 @@
+#!/bin/bash
+
+USER=`whoami`
+if [ "$USER" != "nobody" ]; then
+	echo 'ZFOR must be stopped by user "nobody"!'
+	exit 1
+fi
+
+ZFOR_PROC=`ps axww|grep zfor|grep beam`
+if [ "$ZFOR_PROC" = "" ]; then
+	echo "ZFOR has been stopped already!"
+	exit 0
+fi
+
+ROOT=$(PREFIX)
+ERL=`which erl`
+ERL_NAME=zfor_admin@127.0.0.1
+ZFORD_ERL_NAME=zford@127.0.0.1
+
+NEW_CWD=/tmp
+HOME_DIR=/etc/zfor
+
+# Current working directory must be accessiable for the starting up user,
+# So we change CWD to a world-accessiable place.
+cd $NEW_CWD
+
+# ERTS requires HOME environment variable being set, in order to read .erlang.cookie file
+export HOME=$HOME_DIR
+
+# Remote stopping zfor server
+# Note: heart monitor is watching zfor server, so we must set heart command-line to
+# a useless program and stop zfor server then, otherwise the server will be restarted
+# by heart monitor!
+$ERL -name $ERL_NAME -noshell -noinput \
+	-eval "rpc:call('$ZFORD_ERL_NAME',heart,set_cmd,[\"true\"])" \
+	-eval "rpc:call('$ZFORD_ERL_NAME',init,stop,[]), halt()"
+
+sleep 1
+
+ZFOR_PROC=`ps axww|grep zfor|grep beam`
+if [ "$ZFOR_PROC" != "" ]; then
+	echo "Failed to stop zfor in normal ways, force killing zfor now..."
+	killall -9 heart beam
+fi
+

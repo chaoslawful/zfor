@@ -1,0 +1,42 @@
+#!/bin/bash
+
+USER=`whoami`
+if [ "$USER" != "nobody" ]; then
+	echo 'ZFOR must be started up by user "nobody"!'
+	exit 1
+fi
+
+ZFOR_PROC=`ps axww|grep zfor|grep beam`
+if [ "$ZFOR_PROC" != "" ]; then
+	echo "ZFOR has been started already!"
+	exit 0
+fi
+
+ROOT=$(PREFIX)
+ERL=`which erl`
+RUN_ERL=`which run_erl`
+ZFORD_ERL_NAME=zford@127.0.0.1
+
+ERL_SEARCHPATH=$ROOT/share/zfor/ebin
+ZFORD_INETRC=/etc/zfor/zfor.inetrc
+ZFORD_LOGCONF=/etc/zfor/log.config
+ZFORD_CONFDIR=$ROOT/etc/zfor/
+ZFORD_BOOT=$ROOT/bin/zfor
+MAX_CON_DNS=10
+
+NEW_CWD=/tmp
+HOME_DIR=/etc/zfor
+
+# Current working directory must be accessiable for the starting up user,
+# So we change CWD to a world-accessiable place.
+cd $NEW_CWD
+
+# ERTS requires HOME environment variable being set, in order to read .erlang.cookie file
+export HOME=$HOME_DIR
+
+# Set HEART_COMMAND environment variable for heart monitor
+export HEART_COMMAND="$ERL +K true -heart -name $ZFORD_ERL_NAME -pa $ERL_SEARCHPATH -config $ZFORD_LOGCONF -boot $ZFORD_BOOT -kernel inetrc '\"$ZFORD_INETRC\"' -kernel gethost_poolsize $MAX_CON_DNS -zfor conf_path '\"$ZFORD_CONFDIR\"' -noshell -noinput"
+
+# Use run_erl to start up zfor server, in order to log stdout messages
+$RUN_ERL -daemon /tmp/ /var/log/zfor/ "$HEART_COMMAND"
+

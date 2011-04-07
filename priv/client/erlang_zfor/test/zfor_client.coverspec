@@ -1,0 +1,8 @@
+{level, details}.
+{incl_mods,
+	[
+		zfor_client
+	]
+}.
+% vi:ft=erlang ts=4 sw=4
+
