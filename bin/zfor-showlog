@@ -1,9 +1,0 @@
-#!/bin/bash
-ARG=${1:-10}
-NUM=$((ARG+0))
-
-ERL=`which erl`
-LOGDIR=/var/log/zfor
-
-sudo -u nobody sh -c "$ERL -boot start_sasl -eval 'rb:start([{max,$NUM},{report_dir,\"$LOGDIR\"}]),rb:show(),init:stop().'"
-

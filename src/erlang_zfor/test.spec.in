@@ -1,9 +1,0 @@
-{logdir, "@PATH@/log"}.
-{alias, zfor_client, "@PATH@"}.
-{suites, zfor_client,
-	[
-		zfor_client_SUITE
-	]
-}.
-% vi:ft=erlang ts=4 sw=4
-

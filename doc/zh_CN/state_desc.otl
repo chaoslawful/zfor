@@ -1,6 +1,0 @@
-zfor 服务状态结构中部分字段说明
-	proc_dict
-	: 该字段保存了所有功能进程状态列表，类型为 dict()。具体保存的 key 类型为
-	: {atom(), integer() / string()}，value 类型为 record(proc_info)。key
-	: 的取值目前可以是 {udp_server, Port} 或 {vhost_checker, VHostname}。
-

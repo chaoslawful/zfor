@@ -1,9 +1,0 @@
-This is an example program for using zfor PHP extension.
-
-Install:
-1. Install zfor server and zfor PHP extension
-2. Startup zfor server: sudo -u nobody zfor-start
-3. Copy ../test.conf to $(PREFIX)/etc/zfor/ directory
-4. Make sure test.conf has been loaded: zfor_conf
-5. Run test PHP script: php test_zfor.php
-
