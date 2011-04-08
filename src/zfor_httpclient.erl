@@ -102,7 +102,7 @@ request(Req) ->
 % @doc Receive and parse HTTP responses.
 % @end
 % {{{
--spec recv_http_resp(Sock::pid(), Buf::binary()) ->
+-spec recv_http_resp(Sock::port(), Buf::binary()) ->
 	{ok,
 		{
 			{Version::string(), Status::integer(), Reason::string()},
@@ -138,6 +138,15 @@ recv_http_resp(Sock, Buf) ->
 % @doc Receive and parse response headers and body
 % @end
 % {{{
+-spec recv_http_header(Sock::port(), Res::tuple(), Buf::binary()) ->
+	{ok,
+		{
+			{Version::string(), Status::integer(), Reason::string()},
+			[{Field::string(), Value::string()}],
+			Body::string()
+		}
+	} | {error, Reason::term()}.
+
 recv_http_header(Sock, {ok, {{Ver, Code, Reason}, Headers, Body}} = Res, Buf) ->
 	case erlang:decode_packet(httph, Buf, []) of
 		{error, DReason} -> {error, DReason};
@@ -180,6 +189,8 @@ recv_http_header(Sock, {ok, {{Ver, Code, Reason}, Headers, Body}} = Res, Buf) ->
 % @doc Receive response body.
 % @end
 % {{{
+-spec recv_http_body(Sock::port(), Len::integer(), LB::list(binary())) -> binary().
+
 recv_http_body(_, N, LB) when N =< 0 ->
 	iolist_to_binary(lists:reverse(LB));
 

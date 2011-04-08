@@ -10,13 +10,13 @@
 % @spec start(
 %			StartType::('normal' | {'takeover', Node::node()} | {'failover', Node::node()}),
 %			StartArgs::term()
-%		) -> {'ok', pid()} | {'ok', pid(), term()} | {'error', term()}
+%		) -> {'ok', pid()} | {'error', term()}
 % @end
 % {{{
 -spec start(
 	StartType::('normal' | {'takeover', Node::node()} | {'failover', Node::node()}),
 	StartArgs::term()
-) -> {'ok', pid()} | {'ok', pid(), term()} | {'error', term()}.
+) -> {'ok', pid()} | {'error', term()}.
 
 start(_Type, _Args) ->
 	% 从应用配置参数环境中读取conf_path参数

@@ -9,7 +9,7 @@
 start_link(ConfPath) ->
 	supervisor:start_link({'local', ?ZFOR_SUPERVISOR_SRVNAME}, ?MODULE, ConfPath).
 
--spec init(ConfPath::string()) -> {'ok', {{atom(), integer(), integer()}, [child_spec()]}} | 'ignore'.
+-spec init(ConfPath::string()) -> {'ok', {{atom(), integer(), integer()}, [child_spec()]}}.
 init(ConfPath) ->
 	{ok,{
 			% 重启策略为one_for_one，即哪个服务死掉就重启对应的服务

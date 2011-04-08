@@ -183,7 +183,7 @@ system_continue(Parent, DbgOpts, State) ->
 	),
 	loop(Parent, NewDbgOpts, State).
 
--spec system_terminate(Reason :: term(), Parent :: pid(), DbgOpts :: [term()], State :: server_state()) -> true.
+-spec system_terminate(Reason :: term(), Parent :: pid(), DbgOpts :: [term()], State :: server_state()) -> none().
 system_terminate(Reason, _Parent, DbgOpts, State) ->
 	sys:handle_debug(DbgOpts, {?MODULE, debug_output}, ?MODULE, {"service terminating", State}),
 	stop_all_proc(State),
